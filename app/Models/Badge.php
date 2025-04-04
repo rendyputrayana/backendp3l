@@ -14,4 +14,9 @@ class Badge extends Model
         'nama_badge',
         'logo_badge'
     ];
+
+    public function penitip()
+    {
+        return $this->belongsTo(Penitip::class, 'id_penitip', 'id_penitip');
+    }
 }

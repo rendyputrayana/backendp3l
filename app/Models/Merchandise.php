@@ -14,4 +14,9 @@ class Merchandise extends Model
         'nama_merchandise',
         'poin'
     ];
+
+    public function penukaranRewards()
+    {
+        return $this->hasMany(PenukaranReward::class, 'id_merchandise', 'id_merchandise');
+    }
 }

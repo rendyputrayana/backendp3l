@@ -17,4 +17,14 @@ class Organisasi extends Model
         'alamat_organisasi',
         'password_organisasi'
     ];
+
+    public function request_donasis()
+    {
+        return $this->hasMany(RequestDonasi::class, 'id_organisasi', 'id_organisasi');
+    }
+
+    public function donasis()
+    {
+        return $this->hasMany(Donasi::class, 'id_organisasi', 'id_organisasi');
+    }
 }

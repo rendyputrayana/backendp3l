@@ -19,4 +19,9 @@ class Subkategori extends Model
     {
         return $this->belongsTo(Kategori::class, 'id_kategori', 'id_kategori');
     }
+
+    public function barangs()
+    {
+        return $this->hasMany(Barang::class, 'id_subkategori', 'id_subkategori');
+    }
 }
