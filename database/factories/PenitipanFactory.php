@@ -17,7 +17,10 @@ class PenitipanFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'id_penitip' => $this->faker->unique()->numberBetween(1, 50),
+            'id_pegawai' => $this->faker->numberBetween(1, 28),
+            'id_hunter' => $this->faker->numberBetween(1, 10),
+            'tanggal_penitipan' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ];
     }
 }

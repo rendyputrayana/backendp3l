@@ -17,7 +17,8 @@ class OrganisasiFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama_organisasi' => $this->faker->company,
+            'alamat_organisasi' => $this->faker->address,
         ];
     }
 }

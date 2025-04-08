@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('kode_produk');
             $table->unsignedBigInteger('id_subkategori');
             $table->foreign('id_subkategori')->references('id_subkategori')->on('subkategoris')->onDelete('cascade');
-            $table->unsignedBigInteger('id_donasi');
+            $table->unsignedBigInteger('id_donasi')->nullable();
             $table->foreign('id_donasi')->references('id_donasi')->on('donasis')->onDelete('cascade');
             $table->unsignedBigInteger('nota_penitipan');
             $table->string('nama_barang');

@@ -10,7 +10,7 @@ class Organisasi extends Model
     /** @use HasFactory<\Database\Factories\OrganisasiFactory> */
     use HasFactory;
 
-    protected $table = 'organisasi';
+    protected $table = 'organisasis';
     protected $primaryKey = 'id_organisasi';
     protected $fillable =[
         'nama_organisasi',

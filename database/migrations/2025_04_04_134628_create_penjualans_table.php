@@ -19,8 +19,8 @@ return new class extends Migration
             $table->enum('status_penjualan', ['lunas', 'belum_lunas', 'batal'])->default('belum_lunas');
             $table->bigInteger('ongkos_kirim')->default(0);
             $table->date('tanggal_diterima')->nullable();
-            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima'])->default('belum_dikirim');
-            $table->enum('metode_pengiriman', ['ambil', 'kirim']);
+            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal'])->default('belum_dikirim');
+            $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
             $table->string('bukti_pembayaran')->nullable();
             $table->unsignedBigInteger('id_pegawai')->nullable();
             $table->unsignedBigInteger('id_pembeli');
