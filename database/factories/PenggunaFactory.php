@@ -3,12 +3,11 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Pembeli;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Alamat>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pengguna>
  */
-class AlamatFactory extends Factory
+class PenggunaFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,9 +17,7 @@ class AlamatFactory extends Factory
     public function definition(): array
     {
         return [
-            'detail_alamat' => $this->faker->address(),
-            'id_pembeli' => Pembeli::factory(),
-            'is_default' => false,
+            //
         ];
     }
 }

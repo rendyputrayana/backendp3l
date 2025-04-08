@@ -17,9 +17,15 @@ class Hunter extends Model
         'password_hunter',
         'saldo',
     ];
+    public $timestamps = false;
 
     public function penitipans()
     {
         return $this->hasMany(Penitipan::class, 'id_hunter', 'id_hunter');
+    }
+
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_hunter', 'id_hunter');
     }
 }

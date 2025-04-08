@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('pegawais', function (Blueprint $table) {
             $table->id('id_pegawai');
             $table->string('nama_pegawai');
-            $table->string('password_pegawai');
             $table->date('tanggal_lahir');
             $table->unsignedBigInteger('id_jabatan');
             $table->foreign('id_jabatan')->references('id_jabatan')->on('jabatans')->onDelete('cascade');

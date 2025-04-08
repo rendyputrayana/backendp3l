@@ -14,6 +14,7 @@ class Subkategori extends Model
         'nama_subkategori',
         'id_kategori'
     ];
+    public $timestamps = false;
 
     public function kategori()
     {

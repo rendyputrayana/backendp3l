@@ -12,11 +12,11 @@ class DetailKeranjang extends Model
 
     protected $table = 'detail_keranjangs';
     protected $primaryKey = 'id_keranjang';
-
     protected $fillable = [
         'kode_produk',
         'id_pembeli',
     ];
+    public $timestamps = false;
 
     public function barang()
     {

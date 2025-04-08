@@ -23,9 +23,9 @@ return new class extends Migration
             $table->enum('metode_pengiriman', ['ambil', 'kirim']);
             $table->string('bukti_pembayaran')->nullable();
             $table->unsignedBigInteger('id_pegawai')->nullable();
-            $table->unsignedBigInteger('id_alamat');
+            $table->unsignedBigInteger('id_pembeli');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('set null');
-            $table->foreign('id_alamat')->references('id_alamat')->on('alamats')->onDelete('cascade');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
         });
     }
 

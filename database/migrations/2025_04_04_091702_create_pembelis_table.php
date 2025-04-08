@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('pembelis', function (Blueprint $table) {
             $table->id('id_pembeli');
             $table->string('nama_pembeli');
-            $table->string('password_pembeli');
             $table->string('email_pembeli');
             $table->integer('poin_reward')->default(0);
         });

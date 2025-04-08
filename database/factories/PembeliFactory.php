@@ -17,7 +17,9 @@ class PembeliFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama_pembeli' => $this->faker->name(),
+            'email_pembeli' => $this->faker->unique()->safeEmail(),
+            'poin_reward' => $this->faker->numberBetween(0, 1000),
         ];
     }
 }

@@ -13,6 +13,7 @@ class Jabatan extends Model
     protected $fillable=[
         'nama_jabatan'
     ];
+    public $timestamps = false;
 
     public function pegawai()
     {

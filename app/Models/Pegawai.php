@@ -18,6 +18,7 @@ class Pegawai extends Model
         'tanggal_lahir',
         'id_jabatan',
     ];
+    public $timestamps = false;
 
     public function jabatan()
     {
@@ -32,5 +33,10 @@ class Pegawai extends Model
     public function penjualans()
     {
         return $this->hasMany(Penjualan::class, 'id_pegawai', 'id_pegawai');
+    }
+
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_pegawai', 'id_pegawai');
     }
 }

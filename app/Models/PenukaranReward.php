@@ -18,6 +18,7 @@ class PenukaranReward extends Model
         'id_pembeli',
         'id_merchandise',
     ];
+    public $timestamps = false;
 
     public function pembeli()
     {

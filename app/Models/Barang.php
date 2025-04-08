@@ -26,6 +26,7 @@ class Barang extends Model
         'komisi_reuseMart',
         'perpanjang'
     ];
+    public $timestamps = false;
 
     public function subkategori()
     {

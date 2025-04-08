@@ -26,10 +26,11 @@ class Penjualan extends Model
         'id_pegawai',
         'id_alamat'
     ];
+    public $timestamps = false;
     
-    public function alamat()
+    public function pembeli()
     {
-        return $this->belongsTo(Alamat::class, 'id_alamat', 'id_alamat');
+        return $this->belongsTo(Pembeli::class, 'id_pembeli', 'id_pembeli');
     }
 
     public function rincianPenjualans()

@@ -16,6 +16,7 @@ class AkumulasiRating extends Model
         'akumulasi',
         'id_penitip',
     ];
+    public $timestamps = false;
 
     public function penitip()
     {

@@ -18,6 +18,7 @@ class RincianPenjualan extends Model
         'nota_penjualan',
         'kode_barang'
     ];
+    public $timestamps = false;
 
     public function penjualan()
     {

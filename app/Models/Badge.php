@@ -14,6 +14,7 @@ class Badge extends Model
         'nama_badge',
         'logo_badge'
     ];
+    public $timestamps = false;
 
     public function penitip()
     {

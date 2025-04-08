@@ -14,9 +14,10 @@ class Donasi extends Model
     protected $primaryKey = 'id_donasi';
     protected $fillable = [
         'tanggal_donasi',
-        'tanggal_donasi',
+        'id_organisasi',
         'nama_penerima'
     ];
+    public $timestamps = false;
 
     public function organisasi()
     {
