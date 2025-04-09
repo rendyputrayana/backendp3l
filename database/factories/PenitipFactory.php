@@ -16,12 +16,42 @@ class PenitipFactory extends Factory
      */
     public function definition(): array
     {
+        $streetNames = [
+            'Jl. Malioboro',
+            'Jl. Prawirotaman',
+            'Jl. Parangtritis',
+            'Jl. Affandi',
+            'Jl. Kaliurang',
+            'Jl. Magelang',
+            'Jl. Suroto',
+            'Jl. C. Simanjuntak',
+            'Jl. Sultan Agung',
+            'Jl. Taman Siswa',
+            'Jl. Ngadisuryan',
+            'Jl. Tirtodipuran',
+            'Jl. Gedongkuning',
+            'Jl. Solo',
+            'Jl. Bantul',
+            'Jl. Imogiri',
+            'Jl. Wonosari',
+            'Jl. Godean',
+            'Jl. Ringroad Utara',
+            'Jl. Ringroad Selatan',
+            'Jl. Adisucipto',
+            'Jl. Diponegoro',
+            'Jl. Babarsari',
+            'Jl. Gejayan',
+            'Jl. Candi Borobudur',
+        ];
+
         return [
             'nama_penitip' => $this->faker->name(),
             'no_ktp' => $this->faker->unique()->numerify('################'),
             'no_telepon' => $this->faker->unique()->numerify('08#########'),
-            'alamat_penitip' => $this->faker->address(),
-            'foto_ktp' => $this->faker->imageUrl(640, 480, 'people', true, 'Faker'),
+            'alamat_penitip' => $this->faker->randomElement($streetNames) . 
+                                ' No. ' . $this->faker->numberBetween(1, 200) . 
+                                ', Yogyakarta, Indonesia',
+            'foto_ktp' => $this->faker->imageUrl(640, 480, 'people', true, 'KTP'),
             'saldo' => $this->faker->numberBetween(10000, 10000000),
         ];
     }

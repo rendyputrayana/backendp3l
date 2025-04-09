@@ -17,10 +17,40 @@ class AlamatFactory extends Factory
      */
     public function definition(): array
     {
+        $streetNames = [
+            'Jl. Malioboro',
+            'Jl. Prawirotaman',
+            'Jl. Parangtritis',
+            'Jl. Affandi',
+            'Jl. Kaliurang',
+            'Jl. Magelang',
+            'Jl. Suroto',
+            'Jl. C. Simanjuntak',
+            'Jl. Sultan Agung',
+            'Jl. Taman Siswa',
+            'Jl. Ngadisuryan',
+            'Jl. Tirtodipuran',
+            'Jl. Gedongkuning',
+            'Jl. Solo',
+            'Jl. Bantul',
+            'Jl. Imogiri',
+            'Jl. Wonosari',
+            'Jl. Godean',
+            'Jl. Ringroad Utara',
+            'Jl. Ringroad Selatan',
+            'Jl. Adisucipto',
+            'Jl. Diponegoro',
+            'Jl. Babarsari',
+            'Jl. Gejayan',
+            'Jl. Candi Borobudur',
+        ];
+
         return [
-            'detail_alamat' => $this->faker->address(),
+            'detail_alamat' => $this->faker->randomElement($streetNames) . 
+                               ' No. ' . $this->faker->numberBetween(1, 200) . 
+                               ', Yogyakarta, Indonesia',
             'id_pembeli' => Pembeli::factory(),
-            'is_default' => false,
+            'is_default' => $this->faker->boolean(),
         ];
     }
 }
