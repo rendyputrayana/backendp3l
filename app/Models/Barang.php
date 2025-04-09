@@ -57,4 +57,9 @@ class Barang extends Model
     {
         return $this->hasMany(DiskusiProduk::class, 'kode_produk', 'kode_produk');
     }
+
+    public function fotoBarangs()
+    {
+        return $this->hasMany(FotoBarang::class, 'id_barang', 'kode_produk');
+    }
 }

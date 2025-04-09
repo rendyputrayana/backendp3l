@@ -108,7 +108,6 @@ class BarangSeeder extends Seeder
                 'harga_barang' => $harga_barang,
                 'rating_barang' => $rating_barang,
                 'status_barang' => $status_barang,
-                'foto_barang' => 'https://via.placeholder.com/150',
                 'komisi_penitip' => $komisi_penitip,
                 'komisi_reuseMart' => $komisi_reuseMart,
                 'komisi_hunter' => $komisi_hunter,

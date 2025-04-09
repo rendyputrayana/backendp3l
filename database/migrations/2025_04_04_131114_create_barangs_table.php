@@ -22,7 +22,6 @@ return new class extends Migration
             $table->bigInteger('harga_barang');
             $table->decimal('rating_barang', 2, 1)->nullable();
             $table->enum('status_barang', ['tersedia', 'terjual', 'donasi', 'dikembalikan'])->default('tersedia');
-            $table->string('foto_barang')->nullable();
             $table->bigInteger('komisi_penitip');
             $table->bigInteger('komisi_reuseMart');
             $table->bigInteger('komisi_hunter')->nullable();

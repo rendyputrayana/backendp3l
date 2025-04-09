@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
             PenjualanSeeder::class,
             RincianPenjualanSeeder::class,
             UpdatePenjualanSeeder::class,
+            FotoBarangSeeder::class,
         ]);
-        //DiskusiProduk::factory(10)->create();
     }
 }
