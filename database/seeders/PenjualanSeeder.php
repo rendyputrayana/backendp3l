@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Penjualan;
 use App\Models\RincianPenjualan;
+use Illuminate\Support\Facades\DB;
+use Faker\Factory as Faker;
 use App\Models\Barang;
 
 class PenjualanSeeder extends Seeder
@@ -22,7 +24,7 @@ class PenjualanSeeder extends Seeder
                 $status_penjualan = 'batal';
             }
 
-            $id_pembeli = fake()->numberBetween(1, 50);
+            $id_pembeli = fake()->numberBetween(1, 150);
             $metode_pengiriman = $i % 2 === 0 ? 'kirim' : 'ambil';
 
             // Menentukan status pengiriman dan metode pengiriman
@@ -55,8 +57,10 @@ class PenjualanSeeder extends Seeder
 
             $data[] = [
                 'nota_penjualan' => $i, // Pastikan ID terurut sesuai kategori
-                'tanggal_transaksi' => now()->subDays(fake()->numberBetween(1, 30)),
-                'tanggal_lunas' => $status_penjualan === 'lunas' ? now()->subDays(fake()->numberBetween(1, 10)) : null,
+                'tanggal_transaksi' => $tanggal_transaksi = now()->subDays(fake()->numberBetween(1, 30)),
+                'tanggal_lunas' => $status_penjualan === 'lunas' 
+                    ? $tanggal_transaksi->clone()->addMinutes(fake()->numberBetween(1, 15)) 
+                    : null,
                 'total_harga' => $total_harga,
                 'status_penjualan' => $status_penjualan,
                 'ongkos_kirim' => $ongkos_kirim,
@@ -65,10 +69,42 @@ class PenjualanSeeder extends Seeder
                 'metode_pengiriman' => $metode_pengiriman,
                 'bukti_pembayaran' => $status_penjualan === 'lunas' ? fake()->imageUrl(200, 200, 'business') : null,
                 'id_pegawai' => $id_pegawai,
-                'id_pembeli' => $id_pembeli,
+                'id_alamat' => $id_pembeli,
             ];
         }
 
         Penjualan::insert($data);
+
+
+        $faker = Faker::create();
+        $data = [];
+
+        // Ambil daftar penitipan yang valid (hanya penitip yang benar-benar memiliki barang)
+        $penitipan = DB::table('penitipans')
+            ->join('barangs', 'penitipans.nota_penitipan', '=', 'barangs.nota_penitipan')
+            ->select('penitipans.id_penitip', 'barangs.kode_produk')
+            ->get();
+
+        // Ambil daftar pembeli
+        $pembeli = DB::table('pembelis')->pluck('id_pembeli')->toArray();
+
+        // Pastikan ada cukup data penitipan dan pembeli sebelum insert
+        if ($penitipan->isEmpty() || empty($pembeli)) {
+            return;
+        }
+
+        // Loop untuk membuat 10 diskusi
+        foreach ($penitipan->random(min(10, $penitipan->count())) as $pen) {
+            $data[] = [
+                'id_pembeli'   => $faker->randomElement($pembeli),
+                'id_penitip'   => $pen->id_penitip,
+                'kode_produk'    => $pen->kode_produk,
+                'isi_diskusi'  => $faker->sentence(10),
+                'tanggal_diskusi' => $faker->dateTimeBetween('-1 year', 'now'),
+            ];
+        }
+
+        // Masukkan data ke tabel DiskusiProduk
+        DB::table('diskusi_produks')->insert($data);
     }
 }

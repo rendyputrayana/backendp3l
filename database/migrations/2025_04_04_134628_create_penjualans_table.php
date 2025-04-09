@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('penjualans', function (Blueprint $table) {
             $table->id('nota_penjualan');
-            $table->date('tanggal_transaksi')->default(now());
-            $table->date('tanggal_lunas')->nullable();
+            $table->datetime('tanggal_transaksi')->default(now());
+            $table->datetime('tanggal_lunas')->nullable();
             $table->bigInteger('total_harga');
             $table->enum('status_penjualan', ['lunas', 'belum_lunas', 'batal'])->default('belum_lunas');
             $table->bigInteger('ongkos_kirim')->default(0);
@@ -23,9 +23,9 @@ return new class extends Migration
             $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
             $table->string('bukti_pembayaran')->nullable();
             $table->unsignedBigInteger('id_pegawai')->nullable();
-            $table->unsignedBigInteger('id_pembeli');
+            $table->unsignedBigInteger('id_alamat');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('set null');
-            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->foreign('id_alamat')->references('id_alamat')->on('alamats')->onDelete('cascade');
         });
     }
 

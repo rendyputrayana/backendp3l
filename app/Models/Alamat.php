@@ -22,4 +22,9 @@ class Alamat extends Model
     {
         return $this->belongsTo(Pembeli::class, 'id_pembeli', 'id_pembeli');
     }
+
+    public function penjualans()
+    {
+        return $this->hasMany(Penjualan::class, 'id_alamat', 'id_alamat');
+    }
 }

@@ -11,30 +11,27 @@ class RincianPenjualanSeeder extends Seeder
     {
         $data = [];
         $usedKodeProduk = [];
+        $usedKodeProdukUnik = [];
 
-        // Nota penjualan 1-10, kode produk 76-100
-        for ($i = 1; $i <= 15; $i++) {
-            do {
-                $kode_produk = fake()->numberBetween(76, 100);
-            } while (in_array($kode_produk, $usedKodeProduk));
+        $nota_tersedia = range(1, 20);
+        shuffle($nota_tersedia);
 
-            $usedKodeProduk[] = $kode_produk;
-            $nota_penjualan = fake()->numberBetween(1, 10);
+        for ($id_rincian = 1; $id_rincian <= 30; $id_rincian++) {
+            $nota_penjualan = $nota_tersedia[($id_rincian - 1) % 20];
 
-            $data[] = [
-                'nota_penjualan' => $nota_penjualan,
-                'kode_produk' => $kode_produk,
-            ];
-        }
+            if ($nota_penjualan <= 10) {
+                do {
+                    $kode_produk = fake()->unique()->numberBetween(76, 100);
+                } while (in_array($kode_produk, $usedKodeProdukUnik));
 
-        // Nota penjualan 11-20, kode produk 25-50
-        for ($i = 16; $i <= 30; $i++) {
-            do {
-                $kode_produk = fake()->numberBetween(25, 50);
-            } while (in_array($kode_produk, $usedKodeProduk));
+                $usedKodeProdukUnik[] = $kode_produk;
+            } else {
+                do {
+                    $kode_produk = fake()->numberBetween(21, 50);
+                } while (in_array($kode_produk, $usedKodeProduk));
+            }
 
             $usedKodeProduk[] = $kode_produk;
-            $nota_penjualan = fake()->numberBetween(11, 20);
 
             $data[] = [
                 'nota_penjualan' => $nota_penjualan,
@@ -45,4 +42,3 @@ class RincianPenjualanSeeder extends Seeder
         RincianPenjualan::insert($data);
     }
 }
-

@@ -40,11 +40,6 @@ class Pembeli extends Model
         return $this->hasMany(DiskusiProduk::class, 'id_pembeli', 'id_pembeli');
     }
 
-    public function penjualans()
-    {
-        return $this->hasMany(Penjualan::class, 'id_pembeli', 'id_pembeli');
-    }
-
     public function pengguna()
     {
         return $this->hasOne(Pengguna::class, 'id_pembeli', 'id_pembeli');

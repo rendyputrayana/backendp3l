@@ -21,6 +21,7 @@ use App\Models\Donasi;
 use App\Models\Pengguna;
 use App\Models\Penjualan;
 use App\Models\RincianPenjualan;
+use Illuminate\Bus\Dispatcher;
 
 class DatabaseSeeder extends Seeder
 {
