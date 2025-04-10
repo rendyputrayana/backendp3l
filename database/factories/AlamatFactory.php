@@ -50,7 +50,7 @@ class AlamatFactory extends Factory
                                ' No. ' . $this->faker->numberBetween(1, 200) . 
                                ', Yogyakarta, Indonesia',
             'id_pembeli' => Pembeli::factory(),
-            'is_default' => $this->faker->boolean(),
+            'is_default' => false,
         ];
     }
 }
