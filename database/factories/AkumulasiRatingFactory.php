@@ -17,7 +17,8 @@ class AkumulasiRatingFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'akumulasi' => $this->faker->randomFloat(1,0,5),
+            'id_penitip' => $this->faker->unique()->numberBetween(1, 50),
         ];
     }
 }

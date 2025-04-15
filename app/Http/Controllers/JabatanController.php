@@ -12,7 +12,12 @@ class JabatanController extends Controller
      */
     public function index()
     {
-        //
+        $jabatans = Jabatan::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Jabatan',
+            'data' => $jabatans
+        ], 200);
     }
 
     /**
@@ -28,7 +33,19 @@ class JabatanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_jabatan' => 'required|string|max:255',
+        ]);
+
+        $jabatan = Jabatan::create([
+            'nama_jabatan' => $request->nama_jabatan,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Jabatan berhasil ditambahkan',
+            'data' => $jabatan
+        ], 201);
     }
 
     /**
@@ -36,7 +53,12 @@ class JabatanController extends Controller
      */
     public function show(Jabatan $jabatan)
     {
-        //
+        $jabatan = Jabatan::find($jabatan->id_jabatan);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Jabatan',
+            'data' => $jabatan
+        ], 200);
     }
 
     /**
@@ -52,7 +74,19 @@ class JabatanController extends Controller
      */
     public function update(Request $request, Jabatan $jabatan)
     {
-        //
+        $request->validate([
+            'nama_jabatan' => 'required|string|max:255',
+        ]);
+
+        $jabatan->update([
+            'nama_jabatan' => $request->nama_jabatan,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Jabatan berhasil diperbarui',
+            'data' => $jabatan
+        ], 200);
     }
 
     /**
@@ -60,6 +94,11 @@ class JabatanController extends Controller
      */
     public function destroy(Jabatan $jabatan)
     {
-        //
+        $jabatan = Jabatan::find($jabatan->id_jabatan);
+        $jabatan->delete();
+        return response()->json([
+            'status' => true,
+            'message' => 'Jabatan berhasil dihapus',
+        ], 200);
     }
 }

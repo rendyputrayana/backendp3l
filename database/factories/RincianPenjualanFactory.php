@@ -17,7 +17,7 @@ class RincianPenjualanFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            
         ];
     }
 }

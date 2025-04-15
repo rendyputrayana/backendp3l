@@ -12,11 +12,11 @@ class RequestDonasi extends Model
 
     protected $table = 'request_donasis';
     protected $primaryKey = 'id_request';
-
     protected $fillable = [
         'detail_request',
         'id_organisasi'
     ];
+    public $timestamps = false;
 
     public function organisasi()
     {

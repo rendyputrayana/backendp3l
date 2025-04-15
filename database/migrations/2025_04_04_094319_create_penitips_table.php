@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('penitips', function (Blueprint $table) {
             $table->id('id_penitip');
             $table->string('nama_penitip');
-            $table->string('password_penitip');
-            $table->string('email_penitip');
             $table->string('no_ktp');
             $table->string('no_telepon');
             $table->string('alamat_penitip');

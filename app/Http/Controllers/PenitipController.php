@@ -12,7 +12,12 @@ class PenitipController extends Controller
      */
     public function index()
     {
-        //
+        $penitips = Penitip::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Penitip',
+            'data' => $penitips
+        ], 200);
     }
 
     /**
@@ -36,7 +41,19 @@ class PenitipController extends Controller
      */
     public function show(Penitip $penitip)
     {
-        //
+        $penitip = Penitip::find($penitip->id_penitip);
+        if ($penitip) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail Penitip',
+                'data' => $penitip
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penitip not found'
+            ], 404);
+        }
     }
 
     /**
@@ -52,7 +69,25 @@ class PenitipController extends Controller
      */
     public function update(Request $request, Penitip $penitip)
     {
-        //
+        $request->validate([
+            'nama_penitip' => 'string',
+            'no_telepon' => 'string',
+            'alamat_penitip' => 'string',
+            'saldo' => 'numeric',
+        ]);
+
+        $penitip->update([
+            'nama_penitip' => $request->nama_penitip,
+            'no_telepon' => $request->no_telepon,
+            'alamat_penitip' => $request->alamat_penitip,
+            'saldo' => $request->saldo,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Penitip updated successfully',
+            'data' => $penitip
+        ], 200);
     }
 
     /**
@@ -60,6 +95,35 @@ class PenitipController extends Controller
      */
     public function destroy(Penitip $penitip)
     {
-        //
+        $penitip = Penitip::find($penitip->id_penitip);
+        $penitip->delete();
+        if (!$penitip) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penitip not found'
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Penitip deleted successfully'
+        ], 200);
+    }
+
+    public function search($query)
+    {
+        $penitips = Penitip::where('nama_penitip', 'LIKE', "%$query%")
+            ->get();
+
+        if ($penitips->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penitip not found'
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Search results',
+            'data' => $penitips
+        ], 200);
     }
 }

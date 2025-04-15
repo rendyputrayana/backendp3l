@@ -12,7 +12,12 @@ class KategoriController extends Controller
      */
     public function index()
     {
-        //
+        $kategoris = Kategori::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Kategori',
+            'data' => $kategoris
+        ], 200);
     }
 
     /**
@@ -36,7 +41,12 @@ class KategoriController extends Controller
      */
     public function show(Kategori $kategori)
     {
-        //
+        $kategori = Kategori::find($kategori->id_kategori);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Kategori',
+            'data' => $kategori
+        ], 200);
     }
 
     /**

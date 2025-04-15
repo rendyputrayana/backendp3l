@@ -19,6 +19,7 @@ class Penitipan extends Model
         'id_pegawai',
         'id_hunter'
     ];
+    public $timestamps = false;
 
     public function penitip()
     {

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('alamats', function (Blueprint $table) {
             $table->unsignedBigInteger('id_pembeli');
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->boolean('is_default')->default(false); 
         });
     }
 

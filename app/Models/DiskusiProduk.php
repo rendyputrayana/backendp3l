@@ -12,7 +12,7 @@ class DiskusiProduk extends Model
 
     protected $table = 'diskusi_produks';
     protected $primaryKey = 'id_diskusi';
-
+    public $timestamps = false;
     protected $fillable = [
         'isi_diskusi',
         'tanggal_diskusi',

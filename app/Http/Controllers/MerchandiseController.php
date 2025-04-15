@@ -12,7 +12,12 @@ class MerchandiseController extends Controller
      */
     public function index()
     {
-        //
+        $merchandises = Merchandise::all(); 
+        return response()->json([
+            'status' => true,
+            'message' => 'List Merchandise',
+            'data' => $merchandises
+        ], 200);
     }
 
     /**
@@ -28,7 +33,21 @@ class MerchandiseController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_merchandise' => 'required|string|max:255',
+            'poin' => 'required|integer',
+        ]);
+
+        $merchandise = Merchandise::create([
+            'nama_merchandise' => $request->nama_merchandise,
+            'poin' => $request->point,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Merchandise berhasil ditambahkan',
+            'data' => $merchandise
+        ], 201);
     }
 
     /**
@@ -36,7 +55,12 @@ class MerchandiseController extends Controller
      */
     public function show(Merchandise $merchandise)
     {
-        //
+        $merchandise = Merchandise::find($merchandise->id_merchandise);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Merchandise',
+            'data' => $merchandise
+        ], 200);
     }
 
     /**
@@ -52,7 +76,19 @@ class MerchandiseController extends Controller
      */
     public function update(Request $request, Merchandise $merchandise)
     {
-        //
+        $request->validate([
+            'nama_merchandise' => 'required|string|max:255',
+            'poin' => 'required|integer',
+        ]);
+        $merchandise->update([
+            'nama_merchandise' => $request->nama_merchandise,
+            'poin' => $request->point,
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Merchandise berhasil diupdate',
+            'data' => $merchandise
+        ], 200);
     }
 
     /**
@@ -60,6 +96,11 @@ class MerchandiseController extends Controller
      */
     public function destroy(Merchandise $merchandise)
     {
-        //
+        $merchandise = Merchandise::find($merchandise->id_merchandise);
+        $merchandise->delete();
+        return response()->json([
+            'status' => true,
+            'message' => 'Merchandise berhasil dihapus',
+        ], 200);
     }
 }

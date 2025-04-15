@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id('id_organisasi');
             $table->string('nama_organisasi');
             $table->string('alamat_organisasi');
-            $table->string('password_organisasi');
         });
     }
 

@@ -12,7 +12,12 @@ class SubkategoriController extends Controller
      */
     public function index()
     {
-        //
+        $subkategoris = Subkategori::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Subkategori',
+            'data' => $subkategoris
+        ], 200);
     }
 
     /**
@@ -36,7 +41,12 @@ class SubkategoriController extends Controller
      */
     public function show(Subkategori $subkategori)
     {
-        //
+        $subkategori = Subkategori::find($subkategori->id_subkategori);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Subkategori',
+            'data' => $subkategori
+        ], 200);
     }
 
     /**

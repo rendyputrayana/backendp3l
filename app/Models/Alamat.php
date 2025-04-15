@@ -12,6 +12,7 @@ class Alamat extends Model
 
     protected $table = 'alamats';
     protected $primaryKey = 'id_alamat';
+    public $timestamps = false;
 
     protected $fillable =[
         'detail_alamat'
@@ -22,7 +23,7 @@ class Alamat extends Model
         return $this->belongsTo(Pembeli::class, 'id_pembeli', 'id_pembeli');
     }
 
-    public function pejualans()
+    public function penjualans()
     {
         return $this->hasMany(Penjualan::class, 'id_alamat', 'id_alamat');
     }

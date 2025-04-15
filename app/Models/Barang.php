@@ -11,7 +11,7 @@ class Barang extends Model
     use HasFactory;
 
     protected $table = 'barangs';
-    protected $primaryKey = 'id_barang';
+    protected $primaryKey = 'kode_produk';
 
     protected $fillable = [
         'id_subkategori',
@@ -26,6 +26,7 @@ class Barang extends Model
         'komisi_reuseMart',
         'perpanjang'
     ];
+    public $timestamps = false;
 
     public function subkategori()
     {
@@ -55,5 +56,10 @@ class Barang extends Model
     public function diskusiProduks()
     {
         return $this->hasMany(DiskusiProduk::class, 'kode_produk', 'kode_produk');
+    }
+
+    public function fotoBarangs()
+    {
+        return $this->hasMany(FotoBarang::class, 'id_barang', 'kode_produk');
     }
 }

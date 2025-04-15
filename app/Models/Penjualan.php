@@ -23,13 +23,13 @@ class Penjualan extends Model
         'status_pengiriman',
         'metode_pengiriman',
         'bukti_pembayaran',
-        'id_pegawai',
         'id_alamat'
     ];
+    public $timestamps = false;
     
     public function alamat()
     {
-        return $this->belongsTo(Alamat::class, 'id_alamat', 'id_alamat');
+        return $this->belongsTo(Alamat::class, 'id_alamat', 'id_alamats');
     }
 
     public function rincianPenjualans()

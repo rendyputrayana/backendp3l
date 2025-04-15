@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('penjualans', function (Blueprint $table) {
             $table->id('nota_penjualan');
-            $table->date('tanggal_transaksi')->default(now());
-            $table->date('tanggal_lunas')->nullable();
+            $table->datetime('tanggal_transaksi')->default(now());
+            $table->datetime('tanggal_lunas')->nullable();
             $table->bigInteger('total_harga');
             $table->enum('status_penjualan', ['lunas', 'belum_lunas', 'batal'])->default('belum_lunas');
             $table->bigInteger('ongkos_kirim')->default(0);
             $table->date('tanggal_diterima')->nullable();
-            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima'])->default('belum_dikirim');
-            $table->enum('metode_pengiriman', ['ambil', 'kirim']);
+            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal'])->default('belum_dikirim');
+            $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
+            $table->date('jadwal_pengiriman')->nullable();
             $table->string('bukti_pembayaran')->nullable();
             $table->unsignedBigInteger('id_pegawai')->nullable();
             $table->unsignedBigInteger('id_alamat');

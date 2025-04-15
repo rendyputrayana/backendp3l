@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Merchandise;
+use App\Models\Pembeli;
 use App\Models\PenukaranReward;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,12 @@ class PenukaranRewardController extends Controller
      */
     public function index()
     {
-        //
+        $penukaranRewards = PenukaranReward::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $penukaranRewards,
+            'message' => 'List of Penukaran Rewards'
+        ]);
     }
 
     /**
@@ -28,7 +35,34 @@ class PenukaranRewardController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+            'id_merchandise' => 'required|exists:merchandises,id_merchandise',
+        ]);
+        $pembeli = Pembeli::findOrFail($request->id_pembeli);
+        $merch = Merchandise::findOrFail($request->id_merchandise);
+
+        if($pembeli->poin_reward < $merch->poin)
+        {
+            return response()->json([
+                'status' => false,
+                'message' => 'Poin tidak cukup'
+            ], 400);
+        } else {
+            $penukaran = PenukaranReward::create([
+                'id_pembeli' => $request->id_pembeli,
+                'id_merchandise' => $request->id_merchandise,
+                'tanggal_penukaran' => now(),
+            ]);
+
+            $pembeli->decrement('poin_reward', $merch->poin);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil melakukan penukaran',
+                'data' => $penukaran
+            ]);
+        }
     }
 
     /**
@@ -36,7 +70,20 @@ class PenukaranRewardController extends Controller
      */
     public function show(PenukaranReward $penukaranReward)
     {
-        //
+        $penukaran = PenukaranReward::find($penukaranReward->id_penukaran);
+
+        if($penukaran) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail Penukaran Reward',
+                'data' => $penukaran
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penukaran Reward not found'
+            ], 404);
+        }
     }
 
     /**
