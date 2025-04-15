@@ -12,7 +12,12 @@ class PenitipanController extends Controller
      */
     public function index()
     {
-        //
+        $penitipans = Penitipan::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $penitipans,
+            'message' => 'List of all penitipans'
+        ]);
     }
 
     /**

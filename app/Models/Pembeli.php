@@ -14,9 +14,7 @@ class Pembeli extends Model
     protected $primaryKey = 'id_pembeli';
     protected $fillable = [
         'nama_pembeli',
-        'password_pembeli',
-        'email_pembeli',
-        'poin_reward',
+        'poin_reward'
     ];
     public $timestamps = false;
 

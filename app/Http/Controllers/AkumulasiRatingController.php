@@ -12,7 +12,12 @@ class AkumulasiRatingController extends Controller
      */
     public function index()
     {
-        //
+        $akumulasiRatings = AkumulasiRating::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Akumulasi Rating',
+            'data' => $akumulasiRatings
+        ], 200);
     }
 
     /**
@@ -36,7 +41,12 @@ class AkumulasiRatingController extends Controller
      */
     public function show(AkumulasiRating $akumulasiRating)
     {
-        //
+        $akumulasiRating = AkumulasiRating::find($akumulasiRating->id_akumulasi_rating);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Akumulasi Rating',
+            'data' => $akumulasiRating
+        ], 200);
     }
 
     /**

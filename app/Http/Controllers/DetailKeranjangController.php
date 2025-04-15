@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use App\Models\DetailKeranjang;
 use Illuminate\Http\Request;
 
@@ -37,6 +38,92 @@ class DetailKeranjangController extends Controller
     public function show(DetailKeranjang $detailKeranjang)
     {
         //
+    }
+
+    public function showByIdPembeli($id_pembeli)
+    {
+        $data = DetailKeranjang::where('id_pembeli', $id_pembeli)
+            ->join('barangs', 'detail_keranjangs.kode_produk', '=', 'barangs.kode_produk')
+            ->select(
+                'detail_keranjangs.id_keranjang',
+                'detail_keranjangs.kode_produk',
+                'detail_keranjangs.id_pembeli',
+                'barangs.nama_barang',
+                'barangs.harga_barang'
+            )
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'message' => 'List of all detail keranjangs by id pembeli'
+        ]);
+    }
+
+    public function addToKeranjang(Request $request)
+    {
+        $request->validate([
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+            'kode_produk' => 'required|exists:barangs,kode_produk',
+        ]);
+
+        $existingDetail = DetailKeranjang::where('id_pembeli', $request->id_pembeli)
+            ->where('kode_produk', $request->kode_produk)
+            ->first();
+
+        if($existingDetail){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Barang sudah ada di keranjang'
+            ], 400);
+        }
+
+        $barang = Barang::where('kode_produk', $request->kode_produk)->first();
+
+        if($barang->status_barang != 'tersedia')
+        {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Barang tidak tersedia'
+            ], 400);
+        }
+
+        $detailKeranjang = DetailKeranjang::create([
+            'id_pembeli' => $request->id_pembeli,
+            'kode_produk' => $request->kode_produk
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $detailKeranjang,
+            'message' => 'Barang berhasil ditambahkan ke keranjang'
+        ]);
+    }
+
+    public function removeFromKeranjang(Request $request)
+    {
+        $request->validate([
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+            'kode_produk' => 'required|exists:barangs,kode_produk',
+        ]);
+
+        $detailKeranjang = DetailKeranjang::where('id_pembeli', $request->id_pembeli)
+            ->where('kode_produk', $request->kode_produk)
+            ->first();
+
+        if(!$detailKeranjang){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Barang tidak ditemukan di keranjang'
+            ], 404);
+        }
+
+        $detailKeranjang->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Barang berhasil dihapus dari keranjang'
+        ]);
     }
 
     /**

@@ -15,7 +15,6 @@ class Organisasi extends Model
     protected $fillable =[
         'nama_organisasi',
         'alamat_organisasi',
-        'password_organisasi'
     ];
     public $timestamps = false;
 

@@ -4,19 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Pengguna extends Model
 {
     /** @use HasFactory<\Database\Factories\PenggunaFactory> */
-    use HasFactory;
+    use HasFactory, HasApiTokens;
 
     protected $table = 'penggunas';
     protected $primaryKey = 'id_pengguna';
     public $timestamps = false;
     protected $fillable = [
+        'email',
         'username',
         'password',
-        'role'
+        'id_pembeli',
+        'id_pegawai',
+        'id_penitip',
+        'id_organisasi',
+        'id_hunter',
     ];
 
     public function pegawai()
@@ -42,5 +48,22 @@ class Pengguna extends Model
     public function organisasi()
     {
         return $this->belongsTo(Organisasi::class, 'id_organisasi', 'id_organisasi');
+    }
+
+    public function getRoleAttribute()
+    {
+        if ($this->id_pembeli) {
+            return 'Pembeli';
+        } elseif ($this->id_pegawai) {
+            return 'Pegawai';
+        } elseif ($this->id_penitip) {
+            return 'Penitip';
+        } elseif ($this->id_organisasi) {
+            return 'Organisasi';
+        } elseif ($this->id_hunter) {
+            return 'Hunter';
+        }
+
+        return 'Unknown';
     }
 }

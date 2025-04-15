@@ -12,7 +12,12 @@ class BadgeController extends Controller
      */
     public function index()
     {
-        //
+        $badges = Badge::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Badge',
+            'data' => $badges
+        ], 200);
     }
 
     /**
@@ -28,7 +33,22 @@ class BadgeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_badge' => 'required|string',
+            'logo_badge' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'id_penitip' => 'required|exists:penitips,id_penitip',
+        ]);
+        $badge = Badge::create([
+            'nama_badge' => $request->nama_badge,
+            'logo_badge' => $request->file('logo_badge')->store('badges', 'public'),
+            'id_penitip' => $request->id_penitip,
+         
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Badge berhasil ditambahkan',
+            'data' => $badge
+        ], 201);
     }
 
     /**
@@ -36,7 +56,12 @@ class BadgeController extends Controller
      */
     public function show(Badge $badge)
     {
-        //
+        $badge = Badge::find($badge->id_badge);
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Badge',
+            'data' => $badge
+        ], 200);
     }
 
     /**

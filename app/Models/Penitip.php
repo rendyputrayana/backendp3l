@@ -14,8 +14,6 @@ class Penitip extends Model
     protected $primaryKey = 'id_penitip';
     protected $fillable = [
         'nama_penitip',
-        'password_penitip',
-        'email_penitip',
         'no_telepon',
         'alamat_penitip',
         'saldo',

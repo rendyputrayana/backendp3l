@@ -14,8 +14,8 @@ class Hunter extends Model
     protected $primaryKey = 'id_hunter';
     protected $fillable = [
         'nama_hunter',
-        'password_hunter',
         'saldo',
+        'no_telepon'
     ];
     public $timestamps = false;
 

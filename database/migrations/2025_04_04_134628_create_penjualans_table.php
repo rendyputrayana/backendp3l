@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('tanggal_diterima')->nullable();
             $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal'])->default('belum_dikirim');
             $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
+            $table->date('jadwal_pengiriman')->nullable();
             $table->string('bukti_pembayaran')->nullable();
             $table->unsignedBigInteger('id_pegawai')->nullable();
             $table->unsignedBigInteger('id_alamat');

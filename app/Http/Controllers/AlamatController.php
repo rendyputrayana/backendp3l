@@ -12,7 +12,12 @@ class AlamatController extends Controller
      */
     public function index()
     {
-        //
+        $alamats = Alamat::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Alamat',
+            'data' => $alamats
+        ], 200);
     }
 
     /**
@@ -28,7 +33,19 @@ class AlamatController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'detail_alamat' => 'required|string',
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli'
+        ]);
+        $alamat = Alamat::create([
+            'detail_alamat' => $request->detail_alamat,
+            'id_pembeli' => $request->id_pembeli
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Alamat berhasil ditambahkan',
+            'data' => $alamat
+        ], 201);
     }
 
     /**
@@ -36,7 +53,19 @@ class AlamatController extends Controller
      */
     public function show(Alamat $alamat)
     {
-        //
+        $alamat = Alamat::find($alamat->id_alamat);
+        if ($alamat) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail Alamat',
+                'data' => $alamat
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Alamat not found'
+            ], 404);
+        }
     }
 
     /**
@@ -52,7 +81,17 @@ class AlamatController extends Controller
      */
     public function update(Request $request, Alamat $alamat)
     {
-        //
+        $request->validate([
+           'detail_alamat' => 'required|string',
+        ]);
+
+        $alamat->detail_alamat = $request->detail_alamat;
+        $alamat->save();
+        return response()->json([
+            'status' => true,
+            'message' => 'Alamat berhasil diperbarui',
+            'data' => $alamat
+        ], 200);
     }
 
     /**
@@ -60,6 +99,42 @@ class AlamatController extends Controller
      */
     public function destroy(Alamat $alamat)
     {
-        //
+        $alamat = Alamat::find($alamat->id_alamat);
+        if ($alamat) {
+            $alamat->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'Alamat berhasil dihapus'
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Alamat not found'
+            ], 404);
+        }
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $alamat = Alamat::where('detail_alamat', 'like', "%{$query}%")
+                        ->orWhere('id_pembeli', 'like', "%{$query}%")
+                        ->get();
+
+        if ($alamat->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Alamat tidak ditemukan',
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Hasil pencarian alamat',
+            'data' => $alamat
+        ], 200);
+    }
+
 }

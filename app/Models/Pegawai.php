@@ -14,7 +14,6 @@ class Pegawai extends Model
     protected $primaryKey = 'id_pegawai';
     protected $fillable = [
         'nama_pegawai',
-        'password_pegawai',
         'tanggal_lahir',
         'id_jabatan',
     ];

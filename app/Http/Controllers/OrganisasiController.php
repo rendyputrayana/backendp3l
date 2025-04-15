@@ -12,7 +12,12 @@ class OrganisasiController extends Controller
      */
     public function index()
     {
-        //
+        $organisasi = Organisasi::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Organisasi',
+            'data' => $organisasi
+        ]);
     }
 
     /**
@@ -36,7 +41,19 @@ class OrganisasiController extends Controller
      */
     public function show(Organisasi $organisasi)
     {
-        //
+        $organisasi = Organisasi::find($organisasi->id_organisasi);
+        if ($organisasi) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail Organisasi',
+                'data' => $organisasi
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Organisasi not found'
+            ], 404);
+        }
     }
 
     /**
@@ -52,7 +69,20 @@ class OrganisasiController extends Controller
      */
     public function update(Request $request, Organisasi $organisasi)
     {
-        //
+        $request->validate([
+            'nama_organisasi' => 'required|string|max:255',
+            'alamat_organisasi' => 'required|string|max:255',
+        ]);
+
+        $organisasi->update([
+            'nama_organisasi' => $request->nama_organisasi,
+            'alamat_organisasi' => $request->alamat_organisasi,
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'Organisasi updated successfully',
+            'data' => $organisasi
+        ]);
     }
 
     /**
@@ -60,6 +90,37 @@ class OrganisasiController extends Controller
      */
     public function destroy(Organisasi $organisasi)
     {
-        //
+        $organisasi->find($organisasi->id);
+        if (!$organisasi) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Organisasi not found'
+            ], 404);
+        }
+        $organisasi->delete();
+        return response()->json([
+            'status' => true,
+            'message' => 'Organisasi deleted successfully'
+        ]);
     }
+
+    public function search($query)
+    {
+        $organisasi = Organisasi::where('nama_organisasi', 'LIKE', "%$query%")
+                                ->orWhere('alamat_organisasi', 'LIKE', "%$query%")
+                                ->get();
+
+        if ($organisasi->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Organisasi not found'
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'List Organisasi',
+            'data' => $organisasi
+        ]);
+    }
+
 }
