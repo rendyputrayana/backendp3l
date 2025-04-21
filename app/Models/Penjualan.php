@@ -29,7 +29,7 @@ class Penjualan extends Model
     
     public function alamat()
     {
-        return $this->belongsTo(Alamat::class, 'id_alamat', 'id_alamats');
+        return $this->belongsTo(Alamat::class, 'id_alamat', 'id_alamat');
     }
 
     public function rincianPenjualans()

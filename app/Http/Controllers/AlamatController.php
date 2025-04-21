@@ -137,4 +137,21 @@ class AlamatController extends Controller
         ], 200);
     }
 
+    public function getAlamatByIdPembeli(Request $request, $id_pembeli)
+    {
+        $alamats = Alamat::where('id_pembeli', $id_pembeli)->get();
+        if ($alamats->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Alamat tidak ditemukan untuk id_pembeli ' . $id_pembeli,
+                'data' => []
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'List Alamat untuk id_pembeli ' . $id_pembeli,
+            'data' => $alamats
+        ], 200);
+    }
+
 }

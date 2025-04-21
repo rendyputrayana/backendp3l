@@ -12,6 +12,12 @@ use App\Http\Controllers\RequestDonasiController;
 use App\Http\Controllers\FotoBarangController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\DetailKeranjangController;
+use App\Http\Controllers\HunterController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PembeliController;
+use App\Http\Controllers\SubkategoriController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\DiskusiProdukController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register/pembeli', [AuthController::class, 'registerPembeli']);
@@ -26,6 +32,10 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::get('/alamat/search', [AlamatController::class, 'search']);
+Route::get('/alamat/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
+
+Route::get('/kategori', [KategoriController::class, 'index']);
+Route::get('/subkategori/{kategori}', [SubkategoriController::class, 'show']);
 
 // ================= PEGAWAI =================
 Route::get('/pegawai', [PegawaiController::class, 'index']);
@@ -48,6 +58,11 @@ Route::put('/organisasi/{organisasi}', [OrganisasiController::class, 'update']);
 Route::delete('/organisasi/{organisasi}', [OrganisasiController::class, 'destroy']);
 Route::get('/organisasi/search/{keyword}', [OrganisasiController::class, 'search']);
 
+//hunter
+Route::get('/hunter/{hunter}', [HunterController::class, 'show']);
+//pembeli
+Route::get('/pembeli/{pembeli}', [PembeliController::class, 'show']);
+
 //Penukaran
 Route::get('/penukaran', [PenukaranRewardController::class, 'index']);
 Route::get('/penukaran/{penukaranReward}', [PenukaranRewardController::class, 'show']);
@@ -67,11 +82,41 @@ Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::post('/foto-barang', [FotoBarangController::class, 'store']);
 Route::put('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'update']);
 Route::delete('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'destroy']);
+//get foto barang by kode_produk
+Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
 
 // ================= Barang =================
 Route::get('/barang', [BarangController::class, 'index']);
 Route::post('/barang', [BarangController::class, 'store']);
 Route::get('/barang/search/{keyword}', [BarangController::class, 'search']);
+//tampil barang by id
+Route::get('/barang/{barang}', [BarangController::class, 'show']);
+//tampil list by id penitip
+Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangByIdPenitip']);
+//update status barang ke perpanjang
+Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
+//update status barang ke dikembalikan
+Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
+//tampil barang yang tersedia
+Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
 
 //detail keranjang
 Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
+Route::post('/detail-keranjang', [DetailKeranjangController::class, 'addToKeranjang']);
+Route::post('/remove', [DetailKeranjangController::class, 'removeFromKeranjang']);
+
+// ================== Penjualan ==================
+Route::post('/addPenjualan', [PenjualanController::class, 'store']);
+Route::post('/verifPembayaran', [PenjualanController::class, 'verifikasiPenjualan']);
+Route::get('/pengirimanHariIni', [PenjualanController::class, 'getJadwalHariini']);
+Route::put('/selesaikanPenjualanCS', [PenjualanController::class, 'selesaikanTransaksiCS']);
+Route::put('/selesaikanPenjualanKurir', [PenjualanController::class, 'selesaikanTransaksiKurir']);
+
+// ================= Diskusi Produk =================
+Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
+Route::post('/addByPembeli/{barang}', [DiskusiProdukController::class, 'addByPembeli']);
+Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
+
+//================== Rating ==================
+Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
+Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);

@@ -10,15 +10,13 @@ class DetailKeranjangFactory extends Factory
 {
     public function definition(): array
     {
-        // Ambil ID pembeli secara acak
         $id_pembeli = $this->faker->numberBetween(1, 50);
 
-        // Ambil semua kode produk yang belum dibeli oleh pembeli ini
         $produkTersedia = Barang::whereNotIn('kode_produk', function ($query) use ($id_pembeli) {
             $query->select('kode_produk')->from('detail_keranjangs')->where('id_pembeli', $id_pembeli);
-        })->pluck('kode_produk')->toArray();
+        })->whereBetween('kode_produk', [21, 50]) // Menambahkan filter untuk kode_produk antara 21 dan 50
+        ->pluck('kode_produk')->toArray();
 
-        // Jika tidak ada barang yang tersedia, kembalikan data kosong untuk menghindari error
         if (empty($produkTersedia)) {
             return [];
         }
