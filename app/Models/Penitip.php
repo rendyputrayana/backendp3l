@@ -36,10 +36,7 @@ class Penitip extends Model
     {
         return $this->hasMany(Penitipan::class, 'id_penitip', 'id_penitip');
     }
-    public function diskusiProduks()
-    {
-        return $this->hasMany(DiskusiProduk::class, 'id_penitip', 'id_penitip');
-    }
+  
     public function pengguna()
     {
         return $this->hasOne(Pengguna::class, 'id_penitip', 'id_penitip');

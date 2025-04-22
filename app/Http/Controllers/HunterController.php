@@ -36,7 +36,21 @@ class HunterController extends Controller
      */
     public function show(Hunter $hunter)
     {
-        //
+        $hunter = Hunter::find($hunter->id_hunter);
+        if(!$hunter)
+        {
+            return response()->json([
+                'message'=>'Hunter not found',
+                'status'=> false,
+                
+            ]);
+        }else{
+            return response()->json([
+                'message'=>'Detail Hunter',
+                'status'=> true,
+                'data'=>$hunter
+            ]);
+        }
     }
 
     /**

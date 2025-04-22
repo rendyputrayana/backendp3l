@@ -72,35 +72,46 @@ class BarangSeeder extends Seeder
             array_fill(0, 25, 'terjual')
         );
 
-        foreach ($statusOrder as $i => $status_barang) {
+        $penitipans = DB::table('penitipans')->get()->keyBy('nota_penitipan');
+
+        $barangId = 1;
+
+        foreach ($statusOrder as $status_barang) {
             $subkategoriIndex = array_rand($subkategoriList);
             $selectedSubkategori = $subkategoriList[$subkategoriIndex];
-
-            $nama_barang = $selectedSubkategori . " " . strtoupper($faker->lexify('?????')) . "-" . $faker->numberBetween(100, 999);
-
+        
+            $nama_barang = $selectedSubkategori . " " . strtoupper($faker->lexify('?????')) . "-" . $barangId++;
+        
             $harga_barang = $faker->randomElement([
-                50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 
-                7500000, 8000000, 450000, 75000, 125000, 1500000, 200000, 
+                50000, 100000, 250000, 500000, 1000000, 2500000, 5000000,
+                7500000, 8000000, 450000, 75000, 125000, 1500000, 200000,
                 300000, 400000, 600000, 700000, 900000, 1200000
             ]);
-
-            $nota_penitipan = $faker->numberBetween(1, 50);
-
+        
+            $nota_penitipan_keys = $penitipans->keys()->toArray();
+            $nota_penitipan = $nota_penitipan_keys[$barangId % count($nota_penitipan_keys)];
+            $tanggal_penitipan = $penitipans[$nota_penitipan]->tanggal_penitipan;
+        
+            $masa_penitipan = Carbon::parse($tanggal_penitipan)->addDays(30)->format('Y-m-d');
+        
             $id_donasi = ($status_barang === 'donasi') ? $faker->numberBetween(1, 20) : null;
-
-            $komisi_penitip = floor($harga_barang * 0.8);
-            $komisi_reuseMart = floor($harga_barang * 0.2);
-            $komisi_hunter = ($nota_penitipan > 25) ? floor($harga_barang * 0.05) : 0;
-
+        
+            $hasHunter = $nota_penitipan > 25;
+        
+            $komisi_hunter = $hasHunter ? floor($harga_barang * 0.05) : 0;
+            $komisi_reuseMart = $hasHunter ? floor($harga_barang * 0.15) : floor($harga_barang * 0.20);
+            $komisi_penitip = $harga_barang - $komisi_reuseMart - $komisi_hunter;
+        
             $rating_barang = ($status_barang === 'terjual') ? $faker->randomFloat(1, 1, 5) : null;
-
+        
             $id_subkategori = $subkategoriIndex + 1;
+        
             $garansi = null;
             if ($id_subkategori >= 1 && $id_subkategori <= 7) {
                 $bulanGaransi = $faker->randomElement([3, 6, 12, 24]);
                 $garansi = Carbon::now()->addMonths($bulanGaransi)->format('Y-m-d');
             }
-
+        
             DB::table('barangs')->insert([
                 'id_subkategori' => $id_subkategori,
                 'id_donasi' => $id_donasi,
@@ -114,7 +125,9 @@ class BarangSeeder extends Seeder
                 'komisi_hunter' => $komisi_hunter,
                 'perpanjang' => false,
                 'garansi' => $garansi,
+                'masa_penitipan' => $masa_penitipan,
             ]);
         }
+        
     }
 }

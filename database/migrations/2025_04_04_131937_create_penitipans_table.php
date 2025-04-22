@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('penitipans', function (Blueprint $table) {
             $table->id('nota_penitipan');
             $table->date('tanggal_penitipan')->default(now());
-            $table->date('masa_penitipan');
             $table->unsignedBigInteger('id_penitip');
             $table->unsignedBigInteger('id_pegawai')->nullable();
             $table->unsignedBigInteger('id_hunter')->nullable();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kategori;
 use App\Models\Subkategori;
 use Illuminate\Http\Request;
 
@@ -39,13 +40,13 @@ class SubkategoriController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Subkategori $subkategori)
+    public function show(Kategori $kategori)
     {
-        $subkategori = Subkategori::find($subkategori->id_subkategori);
+        $subkategoris = Subkategori::where('id_kategori', $kategori->id_kategori)->get();
         return response()->json([
             'status' => true,
-            'message' => 'Detail Subkategori',
-            'data' => $subkategori
+            'message' => 'List Subkategori',
+            'data' => $subkategoris
         ], 200);
     }
 

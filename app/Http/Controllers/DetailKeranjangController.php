@@ -54,7 +54,7 @@ class DetailKeranjangController extends Controller
             ->get();
 
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'data' => $data,
             'message' => 'List of all detail keranjangs by id pembeli'
         ]);
@@ -73,7 +73,7 @@ class DetailKeranjangController extends Controller
 
         if($existingDetail){
             return response()->json([
-                'status' => 'error',
+                'status' => false,
                 'message' => 'Barang sudah ada di keranjang'
             ], 400);
         }
@@ -83,7 +83,7 @@ class DetailKeranjangController extends Controller
         if($barang->status_barang != 'tersedia')
         {
             return response()->json([
-                'status' => 'error',
+                'status' => false,
                 'message' => 'Barang tidak tersedia'
             ], 400);
         }
@@ -94,7 +94,7 @@ class DetailKeranjangController extends Controller
         ]);
 
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'data' => $detailKeranjang,
             'message' => 'Barang berhasil ditambahkan ke keranjang'
         ]);
@@ -113,7 +113,7 @@ class DetailKeranjangController extends Controller
 
         if(!$detailKeranjang){
             return response()->json([
-                'status' => 'error',
+                'status' => false,
                 'message' => 'Barang tidak ditemukan di keranjang'
             ], 404);
         }
@@ -121,7 +121,7 @@ class DetailKeranjangController extends Controller
         $detailKeranjang->delete();
 
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'message' => 'Barang berhasil dihapus dari keranjang'
         ]);
     }

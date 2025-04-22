@@ -134,4 +134,21 @@ class FotoBarangController extends Controller
             ], 404);
         }
     }
+
+    public function getByBarangId(Request $request, $kode_produk)
+    {
+        $fotoBarang = FotoBarang::where('kode_produk', $kode_produk)->get();
+        if ($fotoBarang) {
+            return response()->json([
+                'status' => true,
+                'message' => 'List Foto Barang',
+                'data' => $fotoBarang
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Foto Barang not found'
+            ], 404);
+        }
+    }
 }

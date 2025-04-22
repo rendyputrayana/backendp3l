@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('nota_penitipan');
             $table->string('nama_barang');
             $table->bigInteger('harga_barang');
+            $table->date('masa_penitipan');
             $table->decimal('rating_barang', 2, 1)->nullable();
             $table->enum('status_barang', ['tersedia', 'terjual', 'donasi', 'dikembalikan'])->default('tersedia');
             $table->bigInteger('komisi_penitip');

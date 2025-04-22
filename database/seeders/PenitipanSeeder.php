@@ -22,14 +22,12 @@ class PenitipanSeeder extends Seeder
         }
 
         $tanggalPenitipan = $faker->dateTimeBetween('-2 months', 'now');
-        $masaPenitipan = (clone $tanggalPenitipan)->modify('+30 days');
 
         Penitipan::create([
             'id_penitip' => $i,
             'id_hunter' => $id_hunter,
             'id_pegawai' => $id_pegawai,
             'tanggal_penitipan' => $tanggalPenitipan,
-            'masa_penitipan' => $masaPenitipan,
         ]);
     }
 }
