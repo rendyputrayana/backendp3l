@@ -14,7 +14,7 @@ class RequestDonasiController extends Controller
     {
         $requestDonasi = RequestDonasi::all();
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'message' => 'List Request Donasi',
             'data' => $requestDonasi
         ]);
