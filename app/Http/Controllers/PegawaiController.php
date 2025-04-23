@@ -57,6 +57,31 @@ class PegawaiController extends Controller
         }
     }
 
+    public function getPegawaiKurir($id_pegawai)
+    {
+        $kurir = Pegawai::where('id_pegawai', $id_pegawai)
+            ->whereHas('jabatan', function ($query) {
+                $query->where('nama_jabatan', 'Kurir');
+            })
+            ->first();
+
+        if ($kurir) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Pegawai adalah Kurir',
+                'data' => $kurir
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Pegawai bukan Kurir',
+                'data' => null
+            ], 404);
+        }
+    }
+
+
+
     /**
      * Show the form for editing the specified resource.
      */

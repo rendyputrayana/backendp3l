@@ -15,7 +15,9 @@ class Alamat extends Model
     public $timestamps = false;
 
     protected $fillable =[
-        'detail_alamat'
+        'detail_alamat',
+        'id_pembeli',
+        'is_default'
     ];
 
     public function pembeli()

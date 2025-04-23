@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Alamat;
+use App\Models\Pembeli;
 use Illuminate\Http\Request;
 
 class AlamatController extends Controller
@@ -31,22 +32,36 @@ class AlamatController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'detail_alamat' => 'required|string',
-            'id_pembeli' => 'required|exists:pembelis,id_pembeli'
-        ]);
-        $alamat = Alamat::create([
-            'detail_alamat' => $request->detail_alamat,
-            'id_pembeli' => $request->id_pembeli
-        ]);
-        return response()->json([
-            'status' => true,
-            'message' => 'Alamat berhasil ditambahkan',
-            'data' => $alamat
-        ], 201);
+    public function store(Request $request, $id_pembeli)
+{
+    $request->validate([
+        'detail_alamat' => 'required|string'
+    ]);
+
+    $hasDefault = Alamat::where('id_pembeli', $id_pembeli)
+                        ->where('is_default', true)
+                        ->exists();
+
+    $data = [
+        'detail_alamat' => $request->detail_alamat,
+        'id_pembeli' => $id_pembeli,
+    ];
+
+    if (!$hasDefault) {
+        $data['is_default'] = true;
+    }else{
+        $data['is_default'] = false;
     }
+
+    $alamat = Alamat::create($data);
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Alamat berhasil ditambahkan',
+        'data' => $alamat
+    ], 201);
+}
+
 
     /**
      * Display the specified resource.

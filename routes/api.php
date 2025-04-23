@@ -46,12 +46,19 @@ Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
+
+    // --------- ALAMAT ---------
+    Route::post('/addAlamat/{id_pembeli}', [AlamatController::class, 'store']);
+
     // --------- PEGAWAI ---------
     Route::get('/pegawai', [PegawaiController::class, 'index']);
     Route::get('/pegawai/{pegawai}', [PegawaiController::class, 'show']);
     Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update']);
     Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy']);
     Route::get('/pegawai/search/{keyword}', [PegawaiController::class, 'search']);
+
+    //---------- KURIR ---------
+    Route::get('/kurir/{id_pagawai}', [PegawaiController::class, 'getPegawaiKurir']);
 
     // --------- PENITIP ---------
     Route::get('/penitip', [PenitipController::class, 'index']);
