@@ -111,6 +111,8 @@ class BarangSeeder extends Seeder
                 $bulanGaransi = $faker->randomElement([3, 6, 12, 24]);
                 $garansi = Carbon::now()->addMonths($bulanGaransi)->format('Y-m-d');
             }
+
+            $berat_barang = $faker->numberBetween(1, 20);
         
             DB::table('barangs')->insert([
                 'id_subkategori' => $id_subkategori,
@@ -126,6 +128,7 @@ class BarangSeeder extends Seeder
                 'perpanjang' => false,
                 'garansi' => $garansi,
                 'masa_penitipan' => $masa_penitipan,
+                'berat_barang' => $berat_barang,
             ]);
         }
         
