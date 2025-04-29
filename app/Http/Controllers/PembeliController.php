@@ -47,7 +47,7 @@ class PembeliController extends Controller
                 'status' => true,
                 'message' => 'Detail Pembeli',
                 'data' => $pembeli
-            ], 200);
+            ]);
         }
     }
 

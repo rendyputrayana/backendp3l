@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_donasi')->nullable();
             $table->foreign('id_donasi')->references('id_donasi')->on('donasis')->onDelete('cascade');
             $table->unsignedBigInteger('nota_penitipan');
+            $table->integer('berat_barang');
             $table->string('nama_barang');
             $table->bigInteger('harga_barang');
             $table->date('masa_penitipan');
