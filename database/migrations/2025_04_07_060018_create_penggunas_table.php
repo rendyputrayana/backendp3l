@@ -26,6 +26,8 @@ return new class extends Migration
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
             $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            $table->string('otp')->nullable();
+            $table->timestamp('otp_expired_at')->nullable();
         });
     }
 

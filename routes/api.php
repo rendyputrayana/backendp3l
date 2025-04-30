@@ -17,6 +17,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/register/organisasi', [AuthController::class, 'registerOrganisasi']);
     Route::post('/register/hunter', [AuthController::class, 'registerHunter']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::put('/ubahPasswordPegawai',[AuthController::class, 'changePasswordPegawai']);
+    Route::post('/forgot-password', [AuthController::class, 'sendOTP']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });
 
@@ -33,10 +38,12 @@ Route::get('/barang/search/{keyword}', [BarangController::class, 'search']);
 Route::get('/barang/{barang}', [BarangController::class, 'show']);
 Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangByIdPenitip']);
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
+Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
+
 
 
 

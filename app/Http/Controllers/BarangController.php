@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use App\Models\RincianPenjualan;
+use App\Models\Subkategori;
 
 class BarangController extends Controller
 {
@@ -14,7 +15,7 @@ class BarangController extends Controller
      */
     public function index()
     {
-        $barangs = Barang::all();
+        $barangs = Barang::paginate(12);
         return response()->json([
             'status' => 'success',
             'data' => $barangs,
@@ -312,5 +313,17 @@ class BarangController extends Controller
         ]);
     }
 
+    public function getBarangByIdKategori($id_kategori)
+    {
+        $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)->pluck('id_subkategori');
+
+        $barang = Barang::whereIn('id_subkategori', $subkategoriIds)->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'List of barangs by kategori'
+        ]);
+    }
 
 }

@@ -10,6 +10,7 @@ use App\Models\Pegawai;
 use App\Models\Penitip;
 use App\Models\Organisasi;
 use App\Models\Hunter;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -220,4 +221,102 @@ class AuthController extends Controller
             'message' => 'Logout berhasil'
         ]);
     }
+
+    public function changePasswordPegawai(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'tanggalLahir' => 'required|date',
+        ]);
+
+        $pengguna = Pengguna::where('username', $request->username)->first();
+        if (!$pengguna) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Username tidak ditemukan'
+            ], 404);
+        }
+
+        $pegawai = Pegawai::where('id_pegawai', $pengguna->id_pegawai)
+            ->where('tanggal_lahir', $request->tanggalLahir)
+            ->first();
+
+        if (!$pegawai) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tanggal lahir tidak sesuai'
+            ], 404);
+        }
+
+        $passwordBaru = $pegawai->tanggal_lahir;
+        $pengguna->password = Hash::make($passwordBaru);
+        $pengguna->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Password berhasil diubah'
+        ]);
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+        ]);
+
+        $user = Pengguna::where('email', $request->email)->first();
+        $otp = rand(1000, 9999);
+
+        $user->otp = $otp;
+        $user->otp_expired_at = now()->addMinutes(10);
+        $user->save();
+
+        Mail::to($user->email)->send(new \App\Mail\SendOtpMail($otp));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'OTP berhasil dikirim ke email',
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required'
+        ]);
+        
+        $user = Pengguna::where('email', $request->email)->first();
+
+        if (!$user || $user->otp !== $request->otp || now()->gt($user->otp_expired_at)) {
+            return back()->withErrors(['otp' => 'Kode OTP salah atau kedaluwarsa']);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'OTP valid',
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = Pengguna::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->otp = null;
+        $user->otp_expired_at = null;
+        $user->save();
+
+        return response()->json(
+            [
+                'status' => true,
+                'message' => 'Password berhasil diubah',
+            ]
+            );
+    }
+
 }
