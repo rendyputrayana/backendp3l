@@ -19,6 +19,6 @@ class FotoBarang extends Model
     ];
     public function barang()
     {
-        return $this->belongsTo(Barang::class, 'id_barang', 'kode_produk');
+        return $this->belongsTo(Barang::class, 'kode_produk', 'kode_produk');
     }
 }
