@@ -333,7 +333,7 @@ class BarangController extends Controller
     {
         $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)->pluck('id_subkategori');
 
-        $barang = Barang::whereIn('id_subkategori', $subkategoriIds)->get();
+        $barang = Barang::whereIn('id_subkategori', $subkategoriIds)->paginate(12);
 
         return response()->json([
             'status' => true,
