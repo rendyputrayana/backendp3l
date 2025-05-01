@@ -54,6 +54,8 @@ Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
+
     // --------- ALAMAT ---------
     Route::post('/addAlamat/{id_pembeli}', [AlamatController::class, 'store']);
 

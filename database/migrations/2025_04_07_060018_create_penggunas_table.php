@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('penggunas', function (Blueprint $table) {
             $table->id('id_pengguna');
             $table->string('email')->unique()->nullable();
+            $table->string('fcm_token', 512)->nullable();
             $table->string('username')->unique();
             $table->string('password');
             $table->unsignedBigInteger('id_organisasi')->nullable();

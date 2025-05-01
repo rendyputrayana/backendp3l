@@ -10,7 +10,9 @@ use App\Models\Pegawai;
 use App\Models\Penitip;
 use App\Models\Organisasi;
 use App\Models\Hunter;
+use App\Services\FcmService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -216,6 +218,20 @@ class AuthController extends Controller
     {
         $request->user()->tokens()->delete();
 
+        $response = FcmService::sendNotification(
+            $request->user()->fcm_token,
+            'Logout',
+            'Anda telah logout dari aplikasi'
+        );
+        
+        if (!$response['success']) {
+            Log::error('Failed to send FCM notification: ' . $response['message']);
+            return response()->json([
+                'status' => false,
+                'message' => 'Logout berhasil, tetapi gagal mengirim notifikasi'
+            ]);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Logout berhasil'
@@ -319,4 +335,20 @@ class AuthController extends Controller
             );
     }
 
+    public function postFCMToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+            'id_pengguna' => 'required|exists:penggunas,id_pengguna'
+        ]);
+
+        $pengguna = Pengguna::find($request->id_pengguna);
+        $pengguna->fcm_token = $request->fcm_token;
+        $pengguna->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'FCM token berhasil disimpan',
+        ]);
+    }
 }

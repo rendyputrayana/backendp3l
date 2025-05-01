@@ -23,6 +23,7 @@ class Pengguna extends Model
         'id_penitip',
         'id_organisasi',
         'id_hunter',
+        'fcm_token',
     ];
 
     public function pegawai()
