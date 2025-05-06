@@ -327,7 +327,10 @@ class BarangController extends Controller
 
     public function getBarangTersedia(Request $request)
     {
-        $barangs = Barang::where('status_barang', 'tersedia')->get();
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->where('status_barang', 'tersedia')
+            ->paginate(12);
+
         return response()->json([
             'status' => true,
             'data' => $barangs,

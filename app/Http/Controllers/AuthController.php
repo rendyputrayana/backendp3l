@@ -10,6 +10,7 @@ use App\Models\Pegawai;
 use App\Models\Penitip;
 use App\Models\Organisasi;
 use App\Models\Hunter;
+use App\Models\Jabatan;
 use App\Services\FcmService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -201,6 +202,21 @@ class AuthController extends Controller
         $token = $pengguna->createToken('auth_token')->plainTextToken;
 
         $role = $pengguna->role;
+
+        if($role == "Pegawai"){
+            $pegawai = Pegawai::where('id_pegawai', $pengguna->id_pegawai)->first();
+            $jabatan = Jabatan::where('id_jabatan', $pegawai->id_jabatan)->first();
+            return response()->json([
+                'status' => true,
+                'message' => 'Login berhasil',
+                'data' => [
+                    'pengguna' => $pengguna,
+                ],
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'role' => $jabatan->nama_jabatan,
+            ]);
+        }
 
         return response()->json([
             'status' => true,
