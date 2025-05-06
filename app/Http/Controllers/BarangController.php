@@ -16,14 +16,17 @@ class BarangController extends Controller
      */
     public function index()
     {
-        $barangs = Barang::with(['penitipan.penitip','fotoBarangs'])->paginate(12);
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->where('status_barang', 'tersedia') // Tambahkan filter di sini
+            ->paginate(12);
 
         return response()->json([
             'status' => 'success',
             'data' => $barangs,
-            'message' => 'List of all barangs with penitips'
+            'message' => 'List of available barangs with penitips'
         ]);
     }
+
 
 
     public function tampilRating(Barang $barang)
@@ -173,6 +176,9 @@ class BarangController extends Controller
      */
     public function show(Barang $barang)
     {
+
+        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+    
         return response()->json([
             'status' => true,
             'data' => $barang,
@@ -333,7 +339,9 @@ class BarangController extends Controller
     {
         $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)->pluck('id_subkategori');
 
-        $barang = Barang::whereIn('id_subkategori', $subkategoriIds)->paginate(12);
+        $barang = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->whereIn('id_subkategori', $subkategoriIds)
+            ->paginate(9);
 
         return response()->json([
             'status' => true,

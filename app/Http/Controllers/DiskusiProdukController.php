@@ -37,8 +37,10 @@ class DiskusiProdukController extends Controller
      */
     public function show(Barang $barangs)
     {
-        $diskusiProduk = DiskusiProduk::where('kode_produk', $barangs->kode_produk)->get();
-    
+        $diskusiProduk = DiskusiProduk::with(['pembeli', 'pegawai'])
+            ->where('kode_produk', $barangs->kode_produk)
+            ->get();
+
         if ($diskusiProduk->isEmpty()) {
             return response()->json([
                 'message' => 'Diskusi Produk not found',
