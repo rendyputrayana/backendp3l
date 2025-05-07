@@ -340,10 +340,12 @@ class BarangController extends Controller
 
     public function getBarangByIdKategori($id_kategori)
     {
-        $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)->pluck('id_subkategori');
+        $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)
+            ->pluck('id_subkategori');
 
         $barang = Barang::with(['penitipan.penitip', 'fotoBarangs'])
             ->whereIn('id_subkategori', $subkategoriIds)
+            ->where('status_barang', 'tersedia')
             ->paginate(9);
 
         return response()->json([
@@ -352,5 +354,4 @@ class BarangController extends Controller
             'message' => 'List of barangs by kategori'
         ]);
     }
-
 }
