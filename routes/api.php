@@ -103,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/request-donasi', [RequestDonasiController::class, 'store']);
     Route::put('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'destroy']);
+    Route::get('/request-donasi/organisasi/{id_organisasi}', [RequestDonasiController::class, 'filterByOrganisasi']);
 
     // --------- FOTO BARANG ---------
     Route::post('/foto-barang', [FotoBarangController::class, 'store']);

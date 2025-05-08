@@ -137,4 +137,21 @@ class RequestDonasiController extends Controller
             ]);
         }
     }
+
+    public function filterByOrganisasi($id_organisasi)
+    {
+        $requestDonasi = RequestDonasi::where('id_organisasi', $id_organisasi)->get();
+        if ($requestDonasi->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Request Donasi tidak ditemukan'
+            ], 404);
+        } else {
+            return response()->json([
+                'status' => true,
+                'message' => 'List Request Donasi',
+                'data' => $requestDonasi
+            ]);
+        }
+    }
 }
