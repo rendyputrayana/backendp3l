@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\RincianPenjualan;
 use App\Models\Subkategori;
 use App\Models\FotoBarang;
+use App\Models\DetailKeranjang;
 
 class BarangController extends Controller
 {
@@ -354,4 +355,30 @@ class BarangController extends Controller
             'message' => 'List of barangs by kategori'
         ]);
     }
+
+    public function getByIdPembeli($id_pembeli)
+    {
+        $detailKeranjangs = DetailKeranjang::where('id_pembeli', $id_pembeli)->get();
+
+        if ($detailKeranjangs->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No keranjang found for this pembeli'
+            ], 404);
+        }
+
+        $barangs = collect();
+
+        foreach ($detailKeranjangs as $keranjang) {
+            $items = Barang::where('kode_produk', $keranjang->kode_produk)->get();
+            $barangs = $barangs->merge($items);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'List of barangs for pembeli with id ' . $id_pembeli
+        ]);
+    }
+
 }

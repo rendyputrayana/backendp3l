@@ -114,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/barang', [BarangController::class, 'store']);
     Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
+    Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
