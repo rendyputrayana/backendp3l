@@ -13,7 +13,17 @@ class DiskusiProdukController extends Controller
      */
     public function index()
     {
-        //
+
+        $diskusiProduk = DiskusiProduk::with(['barang'])  
+            ->orderBy('kode_produk')
+            ->orderByDesc('tanggal_diskusi')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'List Diskusi Produk',
+            'data' => $diskusiProduk
+        ]);
     }
 
     /**

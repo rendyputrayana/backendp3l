@@ -57,7 +57,7 @@ class DonasiController extends Controller
         $tanggalDonasi = now()->format('Y-m-d');
 
         $barang = Barang::where('kode_produk', $request->kode_produk)->first();
-        if($barang->status_barang != 'tersedia') {
+        if($barang->status_barang != 'barang_untuk_donasi') {
             return response()->json([
                 'status' => false,
                 'message' => 'Status barang tidak valid',
@@ -91,6 +91,17 @@ class DonasiController extends Controller
             'status' => true,
             'message' => 'Donasi created successfully',
             'data' => $donasi
+        ]);
+    }
+
+    public function getBarangSiapDonasi()
+    {
+        $barang = Barang::where('status_barang', 'barang_untuk_donasi')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'List Barang Siap Donasi',
+            'data' => $barang
         ]);
     }
 

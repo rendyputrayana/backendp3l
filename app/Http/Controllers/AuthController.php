@@ -297,6 +297,19 @@ class AuthController extends Controller
         ]);
 
         $user = Pengguna::where('email', $request->email)->first();
+        if(!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Email tidak ditemukan'
+            ], 404);
+        }
+
+        if ($user->otp && now()->lt($user->otp_expired_at)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'OTP sudah dikirim, silakan periksa email Anda'
+            ]);
+        }
         $otp = rand(1000, 9999);
 
         $user->otp = $otp;

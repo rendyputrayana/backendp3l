@@ -54,10 +54,11 @@ Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Donasi
+    //---------- Donasi ---------
     Route::get('/donasi', [DonasiController::class, 'index']);
     Route::post('/donasi', [DonasiController::class, 'store']);
     Route::get('/donasi/{id}', [DonasiController::class, 'getDonasiById']);
+    Route::get('/readyDonasi', [DonasiController::class, 'getBarangSiapDonasi']);
 
     Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
 
