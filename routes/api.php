@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Donasi
     Route::get('/donasi', [DonasiController::class, 'index']);
     Route::post('/donasi', [DonasiController::class, 'store']);
+    Route::get('/donasi/{id}', [DonasiController::class, 'getDonasiById']);
 
     Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
 
