@@ -104,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/request-donasi', [RequestDonasiController::class, 'store']);
     Route::put('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'destroy']);
+    Route::get('/request-donasi/organisasi/{id_organisasi}', [RequestDonasiController::class, 'filterByOrganisasi']);
 
     // --------- FOTO BARANG ---------
     Route::post('/foto-barang', [FotoBarangController::class, 'store']);
@@ -114,6 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/barang', [BarangController::class, 'store']);
     Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
+    Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
