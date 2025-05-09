@@ -127,6 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pengirimanHariIni', [PenjualanController::class, 'getJadwalHariini']);
     Route::put('/selesaikanPenjualanCS', [PenjualanController::class, 'selesaikanTransaksiCS']);
     Route::put('/selesaikanPenjualanKurir', [PenjualanController::class, 'selesaikanTransaksiKurir']);
+    Route::GET('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
 
     // --------- DISKUSI PRODUK ---------
     Route::post('/addByPembeli/{barang}', [DiskusiProdukController::class, 'addByPembeli']);

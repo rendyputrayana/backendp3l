@@ -94,9 +94,9 @@ class PenjualanController extends Controller
             }
              
             if($request->metode_pengiriman == 'ambil'){
-                $status = 'belum_diambil';
+                $status = 'belum diambil';
             }else{
-                $status = 'belum_dikirm';
+                $status = 'belum dikirm';
             }
      
              $penjualan = Penjualan::create([
@@ -132,7 +132,7 @@ class PenjualanController extends Controller
                  ]);
              }
      
-             DetailKeranjang::whereIn('id_keranjang', $request->keranjang_ids)->delete();
+             //DetailKeranjang::whereIn('id_keranjang', $request->keranjang_ids)->delete();
      
              DB::commit();
      
@@ -323,6 +323,74 @@ class PenjualanController extends Controller
             'data' => $penjualan
         ], 200);
     }
+
+    public function getPenjualanByIdPembeli($id_pembeli)
+    {
+        $detailKeranjang = DetailKeranjang::where('id_pembeli', $id_pembeli)->get();
+
+        if ($detailKeranjang->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada keranjang untuk pembeli ini.',
+                'data' => [],
+            ], 200);
+        }
+
+        $kodeProduks = $detailKeranjang->pluck('kode_produk');
+
+        $barang = Barang::whereIn('kode_produk', $kodeProduks)->get();
+
+        if ($barang->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada barang terkait dengan keranjang.',
+                'data' => [],
+            ], 200);
+        }
+
+        $kodeProduksBarang = $barang->pluck('kode_produk');
+
+        $rincianPenjualan = RincianPenjualan::whereIn('kode_produk', $kodeProduksBarang)->get();
+
+        if ($rincianPenjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada rincian penjualan terkait barang.',
+                'data' => [],
+            ], 200);
+        }
+
+        $notaPenjualan = $rincianPenjualan->pluck('nota_penjualan');
+
+        $penjualan = Penjualan::whereIn('nota_penjualan', $notaPenjualan)->get();
+
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada pembelian untuk pembeli ini.',
+                'data' => [],
+            ], 200);
+        }
+
+        $result = $penjualan->map(function ($p) use ($rincianPenjualan, $barang) {
+            $barangInPenjualan = $rincianPenjualan->where('nota_penjualan', $p->nota_penjualan)
+                ->map(function ($rincian) use ($barang) {
+                    $b = $barang->firstWhere('kode_produk', $rincian->kode_produk);
+                    return [
+                        'kode_produk' => $b->kode_produk ?? null,
+                        'nama_barang' => $b->nama_barang ?? null,
+                        'harga' => $b->harga_barang ?? null,
+                    ];
+                })->values();
+
+            return [
+                ...$p->attributesToArray(),
+                'barang' => $barangInPenjualan,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Berhasil mendapatkan pembelian dan barang terkait.',
+            'data' => $result,
+        ], 200);
+    }
+
     
      /**
      * Display the specified resource.
