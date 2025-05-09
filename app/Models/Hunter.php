@@ -14,12 +14,18 @@ class Hunter extends Model
     protected $primaryKey = 'id_hunter';
     protected $fillable = [
         'nama_hunter',
-        'password_hunter',
         'saldo',
+        'no_telepon'
     ];
+    public $timestamps = false;
 
     public function penitipans()
     {
         return $this->hasMany(Penitipan::class, 'id_hunter', 'id_hunter');
+    }
+
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_hunter', 'id_hunter');
     }
 }

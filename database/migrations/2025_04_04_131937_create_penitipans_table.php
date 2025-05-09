@@ -14,10 +14,9 @@ return new class extends Migration
         Schema::create('penitipans', function (Blueprint $table) {
             $table->id('nota_penitipan');
             $table->date('tanggal_penitipan')->default(now());
-            $table->datetime('masa_penitipan')->defaultRaw('CURRENT_DATE + INTERVAL \'30 days\'');
             $table->unsignedBigInteger('id_penitip');
-            $table->unsignedBigInteger('id_pegawai');
-            $table->unsignedBigInteger('id_hunter');
+            $table->unsignedBigInteger('id_pegawai')->nullable();
+            $table->unsignedBigInteger('id_hunter')->nullable();
             $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
             $table->foreign('id_hunter')->references('id_hunter')->on('hunters')->onDelete('cascade');

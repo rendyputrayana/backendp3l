@@ -12,13 +12,13 @@ class DiskusiProduk extends Model
 
     protected $table = 'diskusi_produks';
     protected $primaryKey = 'id_diskusi';
-
+    public $timestamps = false;
     protected $fillable = [
         'isi_diskusi',
         'tanggal_diskusi',
         'id_pembeli',
         'kode_produk',
-        'id_penitip'
+        'id_pegawai'
     ];
 
     public function pembeli()
@@ -29,8 +29,8 @@ class DiskusiProduk extends Model
     {
         return $this->belongsTo(Barang::class, 'kode_produk', 'kode_produk');
     }
-    public function penitip()
+    public function pegawai()
     {
-        return $this->belongsTo(Penitip::class, 'id_penitip', 'id_penitip');
+        return $this->belongsTo(Pegawai::class, 'id_pegawai', 'id_pegawai');
     }
 }

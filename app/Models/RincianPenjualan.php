@@ -16,8 +16,9 @@ class RincianPenjualan extends Model
     protected $fillable = [
         'id_rincian_penjualan',
         'nota_penjualan',
-        'kode_barang'
+        'kode_produk'
     ];
+    public $timestamps = false;
 
     public function penjualan()
     {
@@ -25,6 +26,6 @@ class RincianPenjualan extends Model
     }
     public function barang()
     {
-        return $this->belongsTo(Barang::class, 'kode_barang', 'kode_barang');
+        return $this->belongsTo(Barang::class, 'kode_produk', 'kode_produk');
     }
 }

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('hunters', function (Blueprint $table) {
             $table->id('id_hunter');
             $table->string('nama_hunter');
-            $table->string('password_hunter');
             $table->bigInteger('saldo')->default(0);
+            $table->string('no_telepon');
         });
     }
 

@@ -14,10 +14,10 @@ class Pegawai extends Model
     protected $primaryKey = 'id_pegawai';
     protected $fillable = [
         'nama_pegawai',
-        'password_pegawai',
         'tanggal_lahir',
         'id_jabatan',
     ];
+    public $timestamps = false;
 
     public function jabatan()
     {
@@ -32,5 +32,15 @@ class Pegawai extends Model
     public function penjualans()
     {
         return $this->hasMany(Penjualan::class, 'id_pegawai', 'id_pegawai');
+    }
+
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_pegawai', 'id_pegawai');
+    }
+
+    public function diskusiProduks()
+    {
+        return $this->hasMany(DiskusiProduk::class, 'id_pegawai', 'id_pegawai');
     }
 }

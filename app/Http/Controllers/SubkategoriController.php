@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kategori;
 use App\Models\Subkategori;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,12 @@ class SubkategoriController extends Controller
      */
     public function index()
     {
-        //
+        $subkategoris = Subkategori::all();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Subkategori',
+            'data' => $subkategoris
+        ], 200);
     }
 
     /**
@@ -34,9 +40,14 @@ class SubkategoriController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Subkategori $subkategori)
+    public function show(Kategori $kategori)
     {
-        //
+        $subkategoris = Subkategori::where('id_kategori', $kategori->id_kategori)->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'List Subkategori',
+            'data' => $subkategoris
+        ], 200);
     }
 
     /**

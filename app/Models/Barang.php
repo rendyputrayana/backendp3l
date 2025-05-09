@@ -11,7 +11,7 @@ class Barang extends Model
     use HasFactory;
 
     protected $table = 'barangs';
-    protected $primaryKey = 'id_barang';
+    protected $primaryKey = 'kode_produk';
 
     protected $fillable = [
         'id_subkategori',
@@ -24,8 +24,12 @@ class Barang extends Model
         'komisi_penitip',
         'komisi_hunter',
         'komisi_reuseMart',
-        'perpanjang'
+        'perpanjang',
+        'garansi',
+        'masa_penitipan',
+        'berat_barang',
     ];
+    public $timestamps = false;
 
     public function subkategori()
     {
@@ -44,7 +48,7 @@ class Barang extends Model
 
     public function rincianPenjualans()
     {
-        return $this->hasMany(RincianPenjualan::class, 'kode_barang', 'kode_barang');
+        return $this->hasMany(RincianPenjualan::class, 'kode_produk', 'kode_produk');
     }
 
     public function detailKeranjangs()
@@ -55,5 +59,10 @@ class Barang extends Model
     public function diskusiProduks()
     {
         return $this->hasMany(DiskusiProduk::class, 'kode_produk', 'kode_produk');
+    }
+
+    public function fotoBarangs()
+    {
+        return $this->hasMany(FotoBarang::class, 'kode_produk', 'kode_produk');
     }
 }

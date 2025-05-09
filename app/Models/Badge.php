@@ -12,8 +12,10 @@ class Badge extends Model
     protected $primaryKey = 'id_badge';
     protected $fillable = [
         'nama_badge',
-        'logo_badge'
+        'logo_badge',
+        'id_penitip',
     ];
+    public $timestamps = false;
 
     public function penitip()
     {

@@ -10,13 +10,13 @@ class Organisasi extends Model
     /** @use HasFactory<\Database\Factories\OrganisasiFactory> */
     use HasFactory;
 
-    protected $table = 'organisasi';
+    protected $table = 'organisasis';
     protected $primaryKey = 'id_organisasi';
     protected $fillable =[
         'nama_organisasi',
         'alamat_organisasi',
-        'password_organisasi'
     ];
+    public $timestamps = false;
 
     public function request_donasis()
     {
@@ -26,5 +26,10 @@ class Organisasi extends Model
     public function donasis()
     {
         return $this->hasMany(Donasi::class, 'id_organisasi', 'id_organisasi');
+    }
+
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_organisasi', 'id_organisasi');
     }
 }

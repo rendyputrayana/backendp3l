@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PegawaiFactory extends Factory
 {
+
+    protected $model = \App\Models\Pegawai::class;
     /**
      * Define the model's default state.
      *
@@ -17,7 +19,9 @@ class PegawaiFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama_pegawai' => $this->faker->name(),
+            'tanggal_lahir' => $this->faker->date('Y-m-d', '2000-12-12'),
+            'id_jabatan' => null,
         ];
     }
 }

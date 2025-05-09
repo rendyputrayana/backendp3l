@@ -14,14 +14,13 @@ class Penitip extends Model
     protected $primaryKey = 'id_penitip';
     protected $fillable = [
         'nama_penitip',
-        'password_penitip',
-        'email_penitip',
         'no_telepon',
         'alamat_penitip',
         'saldo',
         'foto_ktp',
         'no_ktp',
     ];
+    public $timestamps = false;
 
     public function badges()
     {
@@ -37,8 +36,9 @@ class Penitip extends Model
     {
         return $this->hasMany(Penitipan::class, 'id_penitip', 'id_penitip');
     }
-    public function diskusiProduks()
+  
+    public function pengguna()
     {
-        return $this->hasMany(DiskusiProduk::class, 'id_penitip', 'id_penitip');
+        return $this->hasOne(Pengguna::class, 'id_penitip', 'id_penitip');
     }
 }

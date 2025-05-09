@@ -14,11 +14,11 @@ class Penitipan extends Model
     protected $primaryKey = 'nota_penitipan';
     protected $fillable = [
         'tanggal_penitipan',
-        'masa_penitipan',
         'id_penitip',
         'id_pegawai',
         'id_hunter'
     ];
+    public $timestamps = false;
 
     public function penitip()
     {

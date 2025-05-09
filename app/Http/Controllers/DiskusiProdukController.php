@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DiskusiProduk;
 use Illuminate\Http\Request;
+use App\Models\Barang;
 
 class DiskusiProdukController extends Controller
 {
@@ -34,14 +35,71 @@ class DiskusiProdukController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(DiskusiProduk $diskusiProduk)
+    public function show(Barang $barangs)
     {
-        //
+        $diskusiProduk = DiskusiProduk::with(['pembeli', 'pegawai'])
+            ->where('kode_produk', $barangs->kode_produk)
+            ->get();
+
+        if ($diskusiProduk->isEmpty()) {
+            return response()->json([
+                'message' => 'Diskusi Produk not found',
+                'status' => false,
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Detail Diskusi Produk',
+                'status' => true,
+                'data' => $diskusiProduk
+            ]);
+        }
+    }
+    
+
+    public function addByPembeli(Request $request, Barang $barang)
+    {
+        $request->validate([
+            'isi_diskusi' => 'required|string',
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+        ]);
+    
+        $diskusiProduk = DiskusiProduk::create([
+            'isi_diskusi' => $request->isi_diskusi,
+            'tanggal_diskusi' => now(),
+            'id_pembeli' => $request->id_pembeli,
+            'kode_produk' => $barang->kode_produk,
+            'id_pegawai' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Diskusi Produk created successfully',
+            'status' => true,
+            'data' => $diskusiProduk
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function addByPegawai(Request $request, Barang $barang)
+    {
+        $request->validate([
+            'isi_diskusi' => 'required',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+        ]);
+    
+        $diskusiProduk = DiskusiProduk::create([
+            'isi_diskusi' => $request->isi_diskusi,
+            'tanggal_diskusi' => now(),
+            'id_pembeli' => null,
+            'id_pegawai' => $request->id_pegawai,
+            'kode_produk' => $barang->kode_produk,
+        ]);
+    
+        return response()->json([
+            'message' => 'Diskusi Produk oleh pegawai berhasil ditambahkan.',
+            'status' => true,
+            'data' => $diskusiProduk
+        ], 201);
+    }
+    
     public function edit(DiskusiProduk $diskusiProduk)
     {
         //

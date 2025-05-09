@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Donasi;
 use Illuminate\Http\Request;
+use App\Models\Barang;
+use App\Models\Penitip;
+use App\Models\Penitipan;
 
 class DonasiController extends Controller
 {
@@ -12,7 +15,13 @@ class DonasiController extends Controller
      */
     public function index()
     {
-        //
+        $donasi = Donasi::all();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'List Donasi',
+            'data' => $donasi
+        ]);
     }
 
     /**
@@ -28,7 +37,37 @@ class DonasiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_organisasi' => 'required|exists:organisasi,id_organisasi',
+            'nama_peneriman' => 'required|string|max:255',
+            'kode_produk' => 'required|exists:barangs,kode_produk',
+        ]);
+
+        $tanggalDonasi = now()->format('Y-m-d');
+
+        $barang = Barang::where('kode_produk', $request->kode_produk)->first();
+        $barang->status_barang = 'donasi';
+        
+        $donasi = Donasi::create([
+            'id_organisasi' => $request->id_organisasi,
+            'nama_peneriman' => $request->nama_peneriman,
+            'tanggal_donasi' => $tanggalDonasi,
+        ]);
+        $barang->id_donasi = $donasi->id_donasi;
+        $barang->save();
+
+        $penitipan = Penitipan::where('nota_penitipan', $request->nota_penitipan)->first();
+        $penitip = Penitip::where('id_penitip', $penitipan->id_penitip)->first();
+
+        $reward = $barang->harga_barang / 10.000;
+        $penitip->saldo += $reward;
+        $penitip->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Donasi created successfully',
+            'data' => $donasi
+        ]);
     }
 
     /**

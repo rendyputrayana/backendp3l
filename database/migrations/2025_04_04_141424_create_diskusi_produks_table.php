@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id('id_diskusi');
             $table->text('isi_diskusi');
             $table->date('tanggal_diskusi');
-            $table->unsignedBigInteger('id_pembeli');
+            $table->unsignedBigInteger('id_pembeli')->nullable();
             $table->unsignedBigInteger('kode_produk');
-            $table->unsignedBigInteger('id_penitip');
+            $table->unsignedBigInteger('id_pegawai')->nullable();
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('kode_produk')->references('kode_produk')->on('barangs')->onDelete('cascade');
-            $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
         });
     }
 

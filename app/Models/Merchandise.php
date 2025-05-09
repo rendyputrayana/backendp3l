@@ -14,6 +14,7 @@ class Merchandise extends Model
         'nama_merchandise',
         'poin'
     ];
+    public $timestamps = false;
 
     public function penukaranRewards()
     {

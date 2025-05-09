@@ -36,7 +36,19 @@ class PembeliController extends Controller
      */
     public function show(Pembeli $pembeli)
     {
-        //
+        $pembeli = Pembeli::find($pembeli->id_pembeli);
+        if(!$pembeli){
+            return response()->json([
+                'status' => false,
+                'message' => 'Pembeli not found'
+            ], 404);
+        }else{
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail Pembeli',
+                'data' => $pembeli
+            ]);
+        }
     }
 
     /**
