@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     OrganisasiController, HunterController, PembeliController,
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
-    SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController
+    SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
+    MerchandiseController
 };
 
 // ======================= AUTH =======================
@@ -59,6 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/donasi', [DonasiController::class, 'store']);
     Route::get('/donasi/{id}', [DonasiController::class, 'getDonasiById']);
     Route::get('/readyDonasi', [DonasiController::class, 'getBarangSiapDonasi']);
+
+    //---------- Merchandise ---------
+    Route::get('/merchandise', [MerchandiseController::class, 'index']);
+    Route::post('/merchandise', [MerchandiseController::class, 'store']);
+    Route::post('/merchandiseUpdateStok', [MerchandiseController::class, 'updateStok']);
 
     Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
 
