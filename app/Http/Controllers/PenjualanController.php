@@ -132,7 +132,7 @@ class PenjualanController extends Controller
                  ]);
              }
      
-             //DetailKeranjang::whereIn('id_keranjang', $request->keranjang_ids)->delete();
+             DetailKeranjang::whereIn('id_keranjang', $request->keranjang_ids)->delete();
      
              DB::commit();
      
@@ -326,70 +326,54 @@ class PenjualanController extends Controller
 
     public function getPenjualanByIdPembeli($id_pembeli)
     {
-        $detailKeranjang = DetailKeranjang::where('id_pembeli', $id_pembeli)->get();
+        // 1. Ambil semua id_alamat milik pembeli
+        $alamatIds = Alamat::where('id_pembeli', $id_pembeli)->pluck('id_alamat');
 
-        if ($detailKeranjang->isEmpty()) {
+        if ($alamatIds->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada keranjang untuk pembeli ini.',
+                'message' => 'Pembeli tidak memiliki alamat.',
                 'data' => [],
             ], 200);
         }
 
-        $kodeProduks = $detailKeranjang->pluck('kode_produk');
-
-        $barang = Barang::whereIn('kode_produk', $kodeProduks)->get();
-
-        if ($barang->isEmpty()) {
-            return response()->json([
-                'message' => 'Tidak ada barang terkait dengan keranjang.',
-                'data' => [],
-            ], 200);
-        }
-
-        $kodeProduksBarang = $barang->pluck('kode_produk');
-
-        $rincianPenjualan = RincianPenjualan::whereIn('kode_produk', $kodeProduksBarang)->get();
-
-        if ($rincianPenjualan->isEmpty()) {
-            return response()->json([
-                'message' => 'Tidak ada rincian penjualan terkait barang.',
-                'data' => [],
-            ], 200);
-        }
-
-        $notaPenjualan = $rincianPenjualan->pluck('nota_penjualan');
-
-        $penjualan = Penjualan::whereIn('nota_penjualan', $notaPenjualan)->get();
+        // 2. Ambil semua penjualan berdasarkan id_alamat
+        $penjualan = Penjualan::whereIn('id_alamat', $alamatIds)->get();
 
         if ($penjualan->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada pembelian untuk pembeli ini.',
+                'message' => 'Tidak ada data penjualan untuk pembeli ini.',
                 'data' => [],
             ], 200);
         }
 
-        $result = $penjualan->map(function ($p) use ($rincianPenjualan, $barang) {
-            $barangInPenjualan = $rincianPenjualan->where('nota_penjualan', $p->nota_penjualan)
-                ->map(function ($rincian) use ($barang) {
-                    $b = $barang->firstWhere('kode_produk', $rincian->kode_produk);
-                    return [
-                        'kode_produk' => $b->kode_produk ?? null,
-                        'nama_barang' => $b->nama_barang ?? null,
-                        'harga' => $b->harga_barang ?? null,
-                    ];
-                })->values();
+        // 3. Ambil rincian penjualan berdasarkan nota_penjualan dari penjualan
+        $notaPenjualanIds = $penjualan->pluck('nota_penjualan');
+        $rincianPenjualan = RincianPenjualan::whereIn('nota_penjualan', $notaPenjualanIds)->get();
 
-            return [
-                ...$p->attributesToArray(),
-                'barang' => $barangInPenjualan,
-            ];
-        });
+        // 4. Ambil semua barang yang terlibat dari kode_produk pada rincian penjualan
+        $kodeProduks = $rincianPenjualan->pluck('kode_produk')->unique();
+        $barang = Barang::whereIn('kode_produk', $kodeProduks)->get();
 
+        // 5. Kaitkan rincian dan barang ke masing-masing penjualan
+        foreach ($penjualan as $item) {
+            $item->rincian_penjualan = $rincianPenjualan
+                ->where('nota_penjualan', $item->nota_penjualan)
+                ->values();
+
+            foreach ($item->rincian_penjualan as $rincian) {
+                // Menambahkan data barang ke dalam tiap rincian
+                $rincian->barang = $barang->firstWhere('kode_produk', $rincian->kode_produk);
+            }
+        }
+
+        // 6. Return semua data penjualan lengkap dengan rincian dan barang
         return response()->json([
-            'message' => 'Berhasil mendapatkan pembelian dan barang terkait.',
-            'data' => $result,
+            'message' => 'Data penjualan berhasil diambil.',
+            'data' => $penjualan->values(), // Mengembalikan array terstruktur dengan baik
         ], 200);
     }
+
+
 
     
      /**
