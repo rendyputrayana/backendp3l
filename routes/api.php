@@ -28,7 +28,6 @@ Route::prefix('auth')->group(function () {
 
 // ======================= DATA MASTER =======================
 Route::get('/alamat/search', [AlamatController::class, 'search']);
-Route::get('/alamat/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
 
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::get('/subkategori/{kategori}', [SubkategoriController::class, 'show']);
@@ -71,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- ALAMAT ---------
     Route::post('/addAlamat/{id_pembeli}', [AlamatController::class, 'store']);
+    Route::put('/updateAlamat/{id_alamat}', [AlamatController::class, 'update']);
+    Route::delete('/deleteAlamat/{id_alamat}', [AlamatController::class, 'destroy']);
+    Route::get('/alamatById/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
 
     // --------- PEGAWAI ---------
     Route::get('/pegawai', [PegawaiController::class, 'index']);
