@@ -9,6 +9,8 @@ use App\Models\RincianPenjualan;
 use App\Models\Subkategori;
 use App\Models\FotoBarang;
 use App\Models\DetailKeranjang;
+use App\Models\Penitip;
+use App\Models\Penjualan;
 
 class BarangController extends Controller
 {
@@ -378,6 +380,84 @@ class BarangController extends Controller
             'status' => true,
             'data' => $barangs,
             'message' => 'List of barangs for pembeli with id ' . $id_pembeli
+        ]);
+    }
+
+    public function getByIdPenitip($id_penitip)
+    {
+        // Ambil data penitipan yang terkait dengan id_penitip
+        $penitipans = Penitipan::where('id_penitip', $id_penitip)->get();
+
+        if ($penitipans->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penitip not found'
+            ], 404);
+        }
+
+        $barangs = collect();
+        foreach ($penitipans as $penitipan) {
+            // Ambil barang yang terkait dengan nota_penitipan
+            $items = Barang::where('nota_penitipan', $penitipan->nota_penitipan)->get();
+
+            foreach ($items as $barang) {
+                // Ambil foto barang yang terkait dengan kode_produk
+                $foto_barang = FotoBarang::where('kode_produk', $barang->kode_produk)->first();
+                $barang->foto_barang = $foto_barang;
+            }
+
+            $barangs = $barangs->merge($items);
+        }
+
+        if ($barangs->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No barangs found for this penitip'
+            ], 404);
+        }
+
+        // Filter barang yang statusnya 'terjual'
+        $barangs = $barangs->filter(function ($barang) {
+            return $barang->status_barang == 'terjual';
+        });
+
+        // Ambil rincian penjualan berdasarkan kode_produk yang ada pada barangs
+        $kode_produk_list = $barangs->pluck('kode_produk');
+        $rincians = RincianPenjualan::whereIn('kode_produk', $kode_produk_list)->get();
+
+        if ($rincians->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No rincians found for this penitip'
+            ], 404);
+        }
+
+        // Ambil penjualan yang terkait dengan rincian berdasarkan nota_penjualan
+        $nota_penjualan_list = $rincians->pluck('nota_penjualan');
+        $penjualans = Penjualan::whereIn('nota_penjualan', $nota_penjualan_list)->get();
+
+        // Gabungkan data barang dengan penjualan terkait
+        $result = $barangs->map(function ($barang) use ($rincians, $penjualans) {
+            // Cari rincian penjualan yang sesuai dengan kode_produk barang
+            $barang->rincian_penjualan = $rincians->where('kode_produk', $barang->kode_produk)->first();
+            
+            // Cari penjualan terkait berdasarkan nota_penjualan dari rincian
+            if ($barang->rincian_penjualan) {
+                $barang->penjualan = $penjualans->where('nota_penjualan', $barang->rincian_penjualan->nota_penjualan)->first();
+            }
+
+            // Kembalikan barang yang sudah dilengkapi dengan rincian dan penjualan
+            return $barang;
+        });
+
+        // Menggunakan values() untuk memastikan hasilnya menjadi array numerik
+        $result = $result->values();
+
+        // Kembalikan response dengan data barang dan penjualan terkait
+        return response()->json([
+            'status' => true,
+            'data' => $result,
+            'message' => 'List of penitipan for penitip with id ' . $id_penitip
         ]);
     }
 

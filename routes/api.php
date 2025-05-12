@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     OrganisasiController, HunterController, PembeliController,
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
-    SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController
+    SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
+    MerchandiseController
 };
 
 // ======================= AUTH =======================
@@ -50,13 +51,21 @@ Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::clas
 
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
+Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
 
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Donasi
+    //---------- Donasi ---------
     Route::get('/donasi', [DonasiController::class, 'index']);
     Route::post('/donasi', [DonasiController::class, 'store']);
+    Route::get('/donasi/{id}', [DonasiController::class, 'getDonasiById']);
+    Route::get('/readyDonasi', [DonasiController::class, 'getBarangSiapDonasi']);
+
+    //---------- Merchandise ---------
+    Route::get('/merchandise', [MerchandiseController::class, 'index']);
+    Route::post('/merchandise', [MerchandiseController::class, 'store']);
+    Route::post('/merchandiseUpdateStok', [MerchandiseController::class, 'updateStok']);
 
     Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
 

@@ -248,7 +248,7 @@ class PenjualanController extends Controller
             foreach ($rincian as $item) {
                 $barang = Barang::where('kode_produk', $item->kode_produk)->first();
                 if ($barang) {
-                    $barang->status_barang = 'donasi';
+                    $barang->status_barang = 'barang_untuk_donasi';
                     $barang->save();
                 }
             }

@@ -13,7 +13,7 @@ class OrganisasiController extends Controller
     public function index()
     {
         $organisasi = Organisasi::with('pengguna')
-            ->orderBy('id_organisasi') // tambahkan ini
+            ->orderBy('id_organisasi')
             ->get();
 
         $organisasiData = $organisasi->map(function($item) {

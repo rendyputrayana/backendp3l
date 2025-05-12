@@ -12,7 +12,9 @@ class RequestDonasiController extends Controller
      */
     public function index()
     {
-        $requestDonasi = RequestDonasi::all();
+        $requestDonasi = RequestDonasi::with(['organisasi'])
+            ->orderBy('id_request')
+            ->get();
         return response()->json([
             'status' => true,
             'message' => 'List Request Donasi',
