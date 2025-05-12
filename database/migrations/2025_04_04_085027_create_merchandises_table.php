@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_merchandise');
             $table->string('nama_merchandise');
             $table->integer('poin');
+            $table->integer('stok');
         });
     }
 

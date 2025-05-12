@@ -27,6 +27,7 @@ class Barang extends Model
         'perpanjang',
         'garansi',
         'masa_penitipan',
+        'berat_barang',
     ];
     public $timestamps = false;
 
@@ -62,6 +63,6 @@ class Barang extends Model
 
     public function fotoBarangs()
     {
-        return $this->hasMany(FotoBarang::class, 'id_barang', 'kode_produk');
+        return $this->hasMany(FotoBarang::class, 'kode_produk', 'kode_produk');
     }
 }

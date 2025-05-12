@@ -103,4 +103,30 @@ class MerchandiseController extends Controller
             'message' => 'Merchandise berhasil dihapus',
         ], 200);
     }
+
+    public function updateStok(Request $request)
+    {
+        $request->validate(([
+            'id_merchandise' => 'required|integer',
+            'stok' => 'required|integer',
+        ]));
+        $merchandise = Merchandise::find($request->id_merchandise);
+
+        if (!$merchandise) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Merchandise not found'
+            ], 404);
+        }
+
+        $merchandise->update([
+            'stok' => $request->stok,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Stok merchandise berhasil diupdate',
+            'data' => $merchandise
+        ], 200);
+    }
 }

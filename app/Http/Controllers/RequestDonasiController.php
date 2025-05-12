@@ -12,7 +12,9 @@ class RequestDonasiController extends Controller
      */
     public function index()
     {
-        $requestDonasi = RequestDonasi::all();
+        $requestDonasi = RequestDonasi::with(['organisasi'])
+            ->orderBy('id_request')
+            ->get();
         return response()->json([
             'status' => true,
             'message' => 'List Request Donasi',
@@ -124,6 +126,23 @@ class RequestDonasiController extends Controller
     public function search($keyword)
     {
         $requestDonasi = RequestDonasi::where('detail_request', 'LIKE', "%$keyword%")->get();
+        if ($requestDonasi->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Request Donasi tidak ditemukan'
+            ], 404);
+        } else {
+            return response()->json([
+                'status' => true,
+                'message' => 'List Request Donasi',
+                'data' => $requestDonasi
+            ]);
+        }
+    }
+
+    public function filterByOrganisasi($id_organisasi)
+    {
+        $requestDonasi = RequestDonasi::where('id_organisasi', $id_organisasi)->get();
         if ($requestDonasi->isEmpty()) {
             return response()->json([
                 'status' => false,

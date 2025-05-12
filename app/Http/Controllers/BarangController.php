@@ -6,6 +6,9 @@ use App\Models\Barang;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use App\Models\RincianPenjualan;
+use App\Models\Subkategori;
+use App\Models\FotoBarang;
+use App\Models\DetailKeranjang;
 
 class BarangController extends Controller
 {
@@ -14,13 +17,18 @@ class BarangController extends Controller
      */
     public function index()
     {
-        $barangs = Barang::all();
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->where('status_barang', 'tersedia') // Tambahkan filter di sini
+            ->paginate(12);
+
         return response()->json([
             'status' => 'success',
             'data' => $barangs,
-            'message' => 'List of all barangs'
+            'message' => 'List of available barangs with penitips'
         ]);
     }
+
+
 
     public function tampilRating(Barang $barang)
     {
@@ -86,6 +94,9 @@ class BarangController extends Controller
             'id_pegawai' => 'nullable|exists:pegawais,id_pegawai',
             'id_hunter' => 'nullable|exists:hunters,id_hunter',
             'garansi' => 'nullable|date',
+            'fotos' => 'nullable|array',
+            'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'berat_barang' => 'nullable|numeric',
         ]);
 
         if ($request->filled('id_pegawai') && $request->filled('id_hunter')) {
@@ -105,14 +116,12 @@ class BarangController extends Controller
                     'id_penitip' => $request->id_penitip,
                     'id_pegawai' => $request->id_pegawai,
                     'tanggal_penitipan' => now(),
-                    'masa_penitipan' => now()->addDays(30),
                 ]);
             }else{
                 $penitipan = Penitipan::create([
                     'id_penitip' => $request->id_penitip,
                     'id_hunter' => $request->id_hunter,
                     'tanggal_penitipan' => now(),
-                    'masa_penitipan' => now()->addDays(30),
                 ]);
             }
         }else{
@@ -142,7 +151,19 @@ class BarangController extends Controller
             'komisi_hunter' => $komisi_hunter ?? null,
             'perpanjangan' => false,
             'garansi' => $request->garansi,
+            'berat_barang' => $request->berat_barang,
+            'masa_penitipan' => now()->addDays(30),
         ]);
+
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->store('foto_barangs', 'public');
+                FotoBarang::create([
+                    'kode_produk' => $barang->kode_produk,
+                    'foto_barang' => 'storage/' . $path
+                ]);
+            }
+        }
 
         return response()->json([
             'status' => true,
@@ -156,6 +177,9 @@ class BarangController extends Controller
      */
     public function show(Barang $barang)
     {
+
+        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+    
         return response()->json([
             'status' => true,
             'data' => $barang,
@@ -304,7 +328,10 @@ class BarangController extends Controller
 
     public function getBarangTersedia(Request $request)
     {
-        $barangs = Barang::where('status_barang', 'tersedia')->get();
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->where('status_barang', 'tersedia')
+            ->paginate(12);
+
         return response()->json([
             'status' => true,
             'data' => $barangs,
@@ -312,5 +339,46 @@ class BarangController extends Controller
         ]);
     }
 
+    public function getBarangByIdKategori($id_kategori)
+    {
+        $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)
+            ->pluck('id_subkategori');
+
+        $barang = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+            ->whereIn('id_subkategori', $subkategoriIds)
+            ->where('status_barang', 'tersedia')
+            ->paginate(9);
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'List of barangs by kategori'
+        ]);
+    }
+
+    public function getByIdPembeli($id_pembeli)
+    {
+        $detailKeranjangs = DetailKeranjang::where('id_pembeli', $id_pembeli)->get();
+
+        if ($detailKeranjangs->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No keranjang found for this pembeli'
+            ], 404);
+        }
+
+        $barangs = collect();
+
+        foreach ($detailKeranjangs as $keranjang) {
+            $items = Barang::where('kode_produk', $keranjang->kode_produk)->get();
+            $barangs = $barangs->merge($items);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'List of barangs for pembeli with id ' . $id_pembeli
+        ]);
+    }
 
 }

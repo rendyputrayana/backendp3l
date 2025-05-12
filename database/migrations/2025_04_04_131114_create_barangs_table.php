@@ -23,7 +23,7 @@ return new class extends Migration
             $table->bigInteger('harga_barang');
             $table->date('masa_penitipan');
             $table->decimal('rating_barang', 2, 1)->nullable();
-            $table->enum('status_barang', ['tersedia', 'terjual', 'donasi', 'dikembalikan'])->default('tersedia');
+            $table->enum('status_barang', ['tersedia', 'terjual', 'donasi', 'dikembalikan', 'barang_untuk_donasi'])->default('tersedia');
             $table->bigInteger('komisi_penitip');
             $table->bigInteger('komisi_reuseMart');
             $table->bigInteger('komisi_hunter')->nullable();

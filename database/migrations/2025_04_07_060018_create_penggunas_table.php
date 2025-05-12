@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('penggunas', function (Blueprint $table) {
             $table->id('id_pengguna');
             $table->string('email')->unique()->nullable();
+            $table->string('fcm_token', 512)->nullable();
             $table->string('username')->unique();
             $table->string('password');
             $table->unsignedBigInteger('id_organisasi')->nullable();
@@ -26,6 +27,8 @@ return new class extends Migration
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
             $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            $table->string('otp')->nullable();
+            $table->timestamp('otp_expired_at')->nullable();
         });
     }
 

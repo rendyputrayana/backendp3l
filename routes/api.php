@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     OrganisasiController, HunterController, PembeliController,
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
-    SubkategoriController, PenjualanController, DiskusiProdukController
+    SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
+    MerchandiseController
 };
 
 // ======================= AUTH =======================
@@ -17,6 +18,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/register/organisasi', [AuthController::class, 'registerOrganisasi']);
     Route::post('/register/hunter', [AuthController::class, 'registerHunter']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::put('/ubahPasswordPegawai',[AuthController::class, 'changePasswordPegawai']);
+    Route::post('/forgot-password', [AuthController::class, 'sendOTP']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });
 
@@ -33,10 +39,12 @@ Route::get('/barang/search/{keyword}', [BarangController::class, 'search']);
 Route::get('/barang/{barang}', [BarangController::class, 'show']);
 Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangByIdPenitip']);
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
+Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
+
 
 
 
@@ -46,6 +54,19 @@ Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
+
+    //---------- Donasi ---------
+    Route::get('/donasi', [DonasiController::class, 'index']);
+    Route::post('/donasi', [DonasiController::class, 'store']);
+    Route::get('/donasi/{id}', [DonasiController::class, 'getDonasiById']);
+    Route::get('/readyDonasi', [DonasiController::class, 'getBarangSiapDonasi']);
+
+    //---------- Merchandise ---------
+    Route::get('/merchandise', [MerchandiseController::class, 'index']);
+    Route::post('/merchandise', [MerchandiseController::class, 'store']);
+    Route::post('/merchandiseUpdateStok', [MerchandiseController::class, 'updateStok']);
+
+    Route::post('/fcm-token', [AuthController::class, 'postFCMToken']);
 
     // --------- ALAMAT ---------
     Route::post('/addAlamat/{id_pembeli}', [AlamatController::class, 'store']);
@@ -90,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/request-donasi', [RequestDonasiController::class, 'store']);
     Route::put('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{requestDonasi}', [RequestDonasiController::class, 'destroy']);
+    Route::get('/request-donasi/organisasi/{id_organisasi}', [RequestDonasiController::class, 'filterByOrganisasi']);
 
     // --------- FOTO BARANG ---------
     Route::post('/foto-barang', [FotoBarangController::class, 'store']);
@@ -100,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/barang', [BarangController::class, 'store']);
     Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
+    Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
