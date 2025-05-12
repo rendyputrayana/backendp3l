@@ -76,36 +76,50 @@ class BarangSeeder extends Seeder
 
         $barangId = 1;
 
+        // Buat array id_donasi dari 1-20 untuk memastikan muncul semua
+        $donasiIds = range(1, 20);
+        shuffle($donasiIds);
+        $donasiIndex = 0;
+
         foreach ($statusOrder as $status_barang) {
             $subkategoriIndex = array_rand($subkategoriList);
             $selectedSubkategori = $subkategoriList[$subkategoriIndex];
-        
+
             $nama_barang = $selectedSubkategori . " " . strtoupper($faker->lexify('?????')) . "-" . $barangId++;
-        
+
             $harga_barang = $faker->randomElement([
                 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000,
                 7500000, 8000000, 450000, 75000, 125000, 1500000, 200000,
                 300000, 400000, 600000, 700000, 900000, 1200000
             ]);
-        
+
             $nota_penitipan_keys = $penitipans->keys()->toArray();
             $nota_penitipan = $nota_penitipan_keys[$barangId % count($nota_penitipan_keys)];
             $tanggal_penitipan = $penitipans[$nota_penitipan]->tanggal_penitipan;
-        
+
             $masa_penitipan = Carbon::parse($tanggal_penitipan)->addDays(30)->format('Y-m-d');
-        
-            $id_donasi = ($status_barang === 'donasi') ? $faker->numberBetween(1, 20) : null;
-        
+
+            // Tentukan id_donasi
+            $id_donasi = null;
+            if ($status_barang === 'donasi') {
+                if ($donasiIndex < count($donasiIds)) {
+                    $id_donasi = $donasiIds[$donasiIndex];
+                    $donasiIndex++;
+                } else {
+                    $id_donasi = $faker->numberBetween(1, 20);
+                }
+            }
+
             $hasHunter = $nota_penitipan > 25;
-        
+
             $komisi_hunter = $hasHunter ? floor($harga_barang * 0.05) : 0;
             $komisi_reuseMart = $hasHunter ? floor($harga_barang * 0.15) : floor($harga_barang * 0.20);
             $komisi_penitip = $harga_barang - $komisi_reuseMart - $komisi_hunter;
-        
+
             $rating_barang = ($status_barang === 'terjual') ? $faker->randomFloat(1, 1, 5) : null;
-        
+
             $id_subkategori = $subkategoriIndex + 1;
-        
+
             $garansi = null;
             if ($id_subkategori >= 1 && $id_subkategori <= 7) {
                 $bulanGaransi = $faker->randomElement([3, 6, 12, 24]);
@@ -113,7 +127,7 @@ class BarangSeeder extends Seeder
             }
 
             $berat_barang = $faker->numberBetween(1, 20);
-        
+
             DB::table('barangs')->insert([
                 'id_subkategori' => $id_subkategori,
                 'id_donasi' => $id_donasi,
@@ -131,6 +145,5 @@ class BarangSeeder extends Seeder
                 'berat_barang' => $berat_barang,
             ]);
         }
-        
     }
 }

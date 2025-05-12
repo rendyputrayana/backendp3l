@@ -15,7 +15,8 @@ class DonasiController extends Controller
      */
     public function index()
     {
-        $donasi = Donasi::paginate(12);
+        $donasi = Donasi::with(['organisasi', 'barang'])
+            ->get();
 
         return response()->json([
             'status' => true,

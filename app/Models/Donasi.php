@@ -24,8 +24,8 @@ class Donasi extends Model
         return $this->belongsTo(Organisasi::class, 'id_organisasi', 'id_organisasi');
     }
 
-    public function barangs()
+    public function barang()
     {
-        return $this->hasMany(Barang::class, 'id_donasi', 'id_donasi');
+        return $this->hasOne(Barang::class, 'id_donasi', 'id_donasi');
     }
 }
