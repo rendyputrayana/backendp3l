@@ -15,6 +15,7 @@ use App\Models\Pegawai;
 use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
+use App\Models\FotoBarang;
 use Illuminate\Support\Facades\Storage;
 
 class PenjualanController extends Controller
@@ -94,9 +95,9 @@ class PenjualanController extends Controller
             }
              
             if($request->metode_pengiriman == 'ambil'){
-                $status = 'belum diambil';
+                $status = 'belum_diambil';
             }else{
-                $status = 'belum dikirm';
+                $status = 'belum_dikirm';
             }
      
              $penjualan = Penjualan::create([
@@ -354,7 +355,11 @@ class PenjualanController extends Controller
         $kodeProduks = $rincianPenjualan->pluck('kode_produk')->unique();
         $barang = Barang::whereIn('kode_produk', $kodeProduks)->get();
 
-        // 5. Kaitkan rincian dan barang ke masing-masing penjualan
+        // 5. Ambil foto barang berdasarkan id_barang
+        $barangIds = $barang->pluck('kode_produk')->unique();
+        $fotoBarang = FotoBarang::whereIn('kode_produk', $barangIds)->get();
+
+        // 6. Kaitkan rincian, barang, dan foto barang ke masing-masing penjualan
         foreach ($penjualan as $item) {
             $item->rincian_penjualan = $rincianPenjualan
                 ->where('nota_penjualan', $item->nota_penjualan)
@@ -363,10 +368,17 @@ class PenjualanController extends Controller
             foreach ($item->rincian_penjualan as $rincian) {
                 // Menambahkan data barang ke dalam tiap rincian
                 $rincian->barang = $barang->firstWhere('kode_produk', $rincian->kode_produk);
+
+                if ($rincian->barang) {
+                    // Menambahkan foto barang ke dalam tiap barang
+                    $rincian->barang->foto_barang = $fotoBarang
+                        ->where('kode_produk', $rincian->barang->kode_produk)
+                        ->values();
+                }
             }
         }
 
-        // 6. Return semua data penjualan lengkap dengan rincian dan barang
+        // 7. Return semua data penjualan lengkap dengan rincian, barang, dan foto barang
         return response()->json([
             'message' => 'Data penjualan berhasil diambil.',
             'data' => $penjualan->values(), // Mengembalikan array terstruktur dengan baik
