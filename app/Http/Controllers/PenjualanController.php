@@ -327,7 +327,6 @@ class PenjualanController extends Controller
 
     public function getPenjualanByIdPembeli($id_pembeli)
     {
-        // 1. Ambil semua id_alamat milik pembeli
         $alamatIds = Alamat::where('id_pembeli', $id_pembeli)->pluck('id_alamat');
 
         if ($alamatIds->isEmpty()) {
@@ -337,7 +336,6 @@ class PenjualanController extends Controller
             ], 200);
         }
 
-        // 2. Ambil semua penjualan berdasarkan id_alamat
         $penjualan = Penjualan::whereIn('id_alamat', $alamatIds)->get();
 
         if ($penjualan->isEmpty()) {
@@ -347,30 +345,24 @@ class PenjualanController extends Controller
             ], 200);
         }
 
-        // 3. Ambil rincian penjualan berdasarkan nota_penjualan dari penjualan
         $notaPenjualanIds = $penjualan->pluck('nota_penjualan');
         $rincianPenjualan = RincianPenjualan::whereIn('nota_penjualan', $notaPenjualanIds)->get();
 
-        // 4. Ambil semua barang yang terlibat dari kode_produk pada rincian penjualan
         $kodeProduks = $rincianPenjualan->pluck('kode_produk')->unique();
         $barang = Barang::whereIn('kode_produk', $kodeProduks)->get();
 
-        // 5. Ambil foto barang berdasarkan id_barang
         $barangIds = $barang->pluck('kode_produk')->unique();
         $fotoBarang = FotoBarang::whereIn('kode_produk', $barangIds)->get();
 
-        // 6. Kaitkan rincian, barang, dan foto barang ke masing-masing penjualan
         foreach ($penjualan as $item) {
             $item->rincian_penjualan = $rincianPenjualan
                 ->where('nota_penjualan', $item->nota_penjualan)
                 ->values();
 
             foreach ($item->rincian_penjualan as $rincian) {
-                // Menambahkan data barang ke dalam tiap rincian
                 $rincian->barang = $barang->firstWhere('kode_produk', $rincian->kode_produk);
 
                 if ($rincian->barang) {
-                    // Menambahkan foto barang ke dalam tiap barang
                     $rincian->barang->foto_barang = $fotoBarang
                         ->where('kode_produk', $rincian->barang->kode_produk)
                         ->values();
@@ -378,10 +370,9 @@ class PenjualanController extends Controller
             }
         }
 
-        // 7. Return semua data penjualan lengkap dengan rincian, barang, dan foto barang
         return response()->json([
             'message' => 'Data penjualan berhasil diambil.',
-            'data' => $penjualan->values(), // Mengembalikan array terstruktur dengan baik
+            'data' => $penjualan->values(), 
         ], 200);
     }
 
