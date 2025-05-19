@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Donasi;
 use Illuminate\Http\Request;
 use App\Models\Barang;
+use App\Models\Pengguna;
 use App\Models\Penitip;
 use App\Models\Penitipan;
+use App\Services\FcmService;
 
 class DonasiController extends Controller
 {
@@ -87,6 +89,16 @@ class DonasiController extends Controller
         $reward = $barang->harga_barang / 10.000;
         $penitip->saldo += $reward;
         $penitip->save();
+
+        $pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+        if ($pengguna) {
+            $pengguna->saldo += $reward;
+            FcmService::sendNotification(
+                $pengguna->fcm_token,
+                'Reward Donasi',
+                'Barang '. $barang->nama_barang . ' telah didonasikan'
+            );
+        }
 
         return response()->json([
             'status' => true,
