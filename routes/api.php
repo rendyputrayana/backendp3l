@@ -31,6 +31,7 @@ Route::get('/alamat/search', [AlamatController::class, 'search']);
 
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::get('/subkategori/{kategori}', [SubkategoriController::class, 'show']);
+Route::get('/subkategori', [SubkategoriController::class, 'index']);
 
 // ======================= PUBLIC BARANG =======================
 Route::get('/barang', [BarangController::class, 'index']);
@@ -86,6 +87,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update']);
     Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy']);
     Route::get('/pegawai/search/{keyword}', [PegawaiController::class, 'search']);
+    Route::get('/allQc', [PegawaiController::class, 'getAllQC']);
+
+
+    // --------- Hunter ---------
+    Route::get('/hunter', [HunterController::class, 'index']);
 
     //---------- KURIR ---------
     Route::get('/kurir/{id_pagawai}', [PegawaiController::class, 'getPegawaiKurir']);

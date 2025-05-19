@@ -16,6 +16,7 @@ use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
 use App\Models\FotoBarang;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
 class PenjualanController extends Controller
@@ -230,6 +231,11 @@ class PenjualanController extends Controller
                 $penitip->save();
                 $barang->status_barang = 'terjual';
                 $barang->save();
+
+                Artisan::call('penjualan:push-barang-laku', [
+                    'nota_penitipan' => $barang->nota_penitipan,
+                    'kode_produk' => $barang->kode_produk,
+                ]);
             }
         }
 

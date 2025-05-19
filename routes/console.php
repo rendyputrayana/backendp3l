@@ -12,3 +12,12 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     Artisan::call('transaksi:auto-batal');
 })->everyMinute();
+
+
+Schedule::call(function () {
+    Artisan::call('penjualan:h3-barang-habis');
+})->daily();
+
+Schedule::call(function () {
+    Artisan::call('penjualan:h1-barang-habis');
+})->daily();

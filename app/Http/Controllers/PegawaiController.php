@@ -185,5 +185,22 @@ class PegawaiController extends Controller
             ], 404);
         }        
     }
+
+    public function getAllQC()
+    {
+        $qc = Pegawai::where('id_jabatan',6)->get();
+        if ($qc->isNotEmpty()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'List QC',
+                'data' => $qc
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No results found'
+            ], 404);
+        }
+    }
     
 }
