@@ -397,11 +397,9 @@ class BarangController extends Controller
 
         $barangs = collect();
         foreach ($penitipans as $penitipan) {
-            // Ambil barang yang terkait dengan nota_penitipan
             $items = Barang::where('nota_penitipan', $penitipan->nota_penitipan)->get();
 
             foreach ($items as $barang) {
-                // Ambil foto barang yang terkait dengan kode_produk
                 $foto_barang = FotoBarang::where('kode_produk', $barang->kode_produk)->first();
                 $barang->foto_barang = $foto_barang;
             }
@@ -416,12 +414,10 @@ class BarangController extends Controller
             ], 404);
         }
 
-        // Filter barang yang statusnya 'terjual'
         $barangs = $barangs->filter(function ($barang) {
             return $barang->status_barang == 'terjual';
         });
 
-        // Ambil rincian penjualan berdasarkan kode_produk yang ada pada barangs
         $kode_produk_list = $barangs->pluck('kode_produk');
         $rincians = RincianPenjualan::whereIn('kode_produk', $kode_produk_list)->get();
 
@@ -432,28 +428,21 @@ class BarangController extends Controller
             ], 404);
         }
 
-        // Ambil penjualan yang terkait dengan rincian berdasarkan nota_penjualan
         $nota_penjualan_list = $rincians->pluck('nota_penjualan');
         $penjualans = Penjualan::whereIn('nota_penjualan', $nota_penjualan_list)->get();
 
-        // Gabungkan data barang dengan penjualan terkait
         $result = $barangs->map(function ($barang) use ($rincians, $penjualans) {
-            // Cari rincian penjualan yang sesuai dengan kode_produk barang
             $barang->rincian_penjualan = $rincians->where('kode_produk', $barang->kode_produk)->first();
             
-            // Cari penjualan terkait berdasarkan nota_penjualan dari rincian
             if ($barang->rincian_penjualan) {
                 $barang->penjualan = $penjualans->where('nota_penjualan', $barang->rincian_penjualan->nota_penjualan)->first();
             }
 
-            // Kembalikan barang yang sudah dilengkapi dengan rincian dan penjualan
             return $barang;
         });
 
-        // Menggunakan values() untuk memastikan hasilnya menjadi array numerik
         $result = $result->values();
 
-        // Kembalikan response dengan data barang dan penjualan terkait
         return response()->json([
             'status' => true,
             'data' => $result,

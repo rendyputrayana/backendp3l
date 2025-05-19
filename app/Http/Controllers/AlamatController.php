@@ -94,12 +94,30 @@ class AlamatController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Alamat $alamat)
+    public function update(Request $request, $id_alamat)
     {
         $request->validate([
            'detail_alamat' => 'required|string',
+           'is_default' => 'boolean'
         ]);
 
+        $alamat = Alamat::find($id_alamat);
+
+        if (!$alamat) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Alamat not found'
+            ], 404);
+        }
+
+        // Jika is_default diubah menjadi true, set alamat lain menjadi false
+        if ($request->is_default) {
+            Alamat::where('id_pembeli', $alamat->id_pembeli)
+                ->where('id_alamat', '!=', $id_alamat)
+                ->update(['is_default' => false]);
+        }
+
+        $alamat->is_default = $request->is_default ?? $alamat->is_default;
         $alamat->detail_alamat = $request->detail_alamat;
         $alamat->save();
         return response()->json([
@@ -112,9 +130,9 @@ class AlamatController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Alamat $alamat)
+    public function destroy($id_alamat)
     {
-        $alamat = Alamat::find($alamat->id_alamat);
+        $alamat = Alamat::find($id_alamat);
         if ($alamat) {
             $alamat->delete();
             return response()->json([

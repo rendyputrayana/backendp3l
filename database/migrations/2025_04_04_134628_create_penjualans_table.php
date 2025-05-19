@@ -16,8 +16,9 @@ return new class extends Migration
             $table->datetime('tanggal_transaksi')->default(now());
             $table->datetime('tanggal_lunas')->nullable();
             $table->bigInteger('total_harga');
-            $table->enum('status_penjualan', ['lunas', 'belum_lunas', 'batal'])->default('belum_lunas');
+            $table->enum('status_penjualan', ['lunas', 'belum_lunas', 'batal', 'menunggu_verifikasi'])->default('belum_lunas');
             $table->bigInteger('ongkos_kirim')->default(0);
+            $table->integer('poin')->nullable();
             $table->date('tanggal_diterima')->nullable();
             $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal', 'disiapkan', 'belum_diambil']);
             $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_alamat')->nullable();
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('set null');
             $table->foreign('id_alamat')->references('id_alamat')->on('alamats')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
