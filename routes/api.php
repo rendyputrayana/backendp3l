@@ -28,7 +28,6 @@ Route::prefix('auth')->group(function () {
 
 // ======================= DATA MASTER =======================
 Route::get('/alamat/search', [AlamatController::class, 'search']);
-Route::get('/alamat/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
 
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::get('/subkategori/{kategori}', [SubkategoriController::class, 'show']);
@@ -53,6 +52,7 @@ Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show'])
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
 
+
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -73,6 +73,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- ALAMAT ---------
     Route::post('/addAlamat/{id_pembeli}', [AlamatController::class, 'store']);
+    Route::put('/updateAlamat/{id_alamat}', [AlamatController::class, 'update']);
+    Route::delete('/deleteAlamat/{id_alamat}', [AlamatController::class, 'destroy']);
+    Route::get('/alamatById/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
     Route::put('/updateAlamat/{id_alamat}', [AlamatController::class, 'update']);
     Route::delete('/deleteAlamat/{id_alamat}', [AlamatController::class, 'destroy']);
     Route::get('/alamatById/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
@@ -129,6 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
     Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
+    Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
     Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
 
     // --------- KERANJANG ---------
