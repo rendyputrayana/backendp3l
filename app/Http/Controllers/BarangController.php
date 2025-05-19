@@ -461,4 +461,50 @@ class BarangController extends Controller
         ]);
     }
 
+    public function showBarangByIdPenitip($id_penitip)
+    {
+        $penitipan = Penitipan::where('id_penitip', $id_penitip)->first();
+
+        if (!$penitipan) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Penitip not found'
+            ], 404);
+        }
+
+        $barangs = Barang::with(['subkategori', 'fotoBarangs'])
+            ->where('nota_penitipan', $penitipan->nota_penitipan)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'List of barangs for penitip with id ' . $id_penitip
+        ]);
+    }
+
+    public function ambilBarangOlehPenitip(Request $request, Barang $barang)
+    {
+        if ($barang->status_barang == 'terjual') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Barang sudah terjual'
+            ], 400);
+        } else if ($barang->status_barang == 'donasi') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Barang sudah didonasikan'
+            ], 400);
+        }
+
+        $barang->update([
+            'status_barang' => 'diambil',
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang berhasil diambil oleh penitip'
+        ]);
+    }
 }

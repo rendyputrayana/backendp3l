@@ -39,10 +39,13 @@ Route::get('/barang/{barang}', [BarangController::class, 'show']);
 Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangByIdPenitip']);
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
 Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
+Route::get('/showBarangByIdPenitip/{id_penitip}', [BarangController::class, 'showBarangByIdPenitip']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
+
+Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
 
 
 
