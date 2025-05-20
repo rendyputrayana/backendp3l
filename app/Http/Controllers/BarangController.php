@@ -463,17 +463,21 @@ class BarangController extends Controller
 
     public function showBarangByIdPenitip($id_penitip)
     {
-        $penitipan = Penitipan::where('id_penitip', $id_penitip)->first();
+        $penitipans = Penitipan::where('id_penitip', $id_penitip)->get();
 
-        if (!$penitipan) {
+        if ($penitipans->isEmpty()) {
             return response()->json([
                 'status' => false,
                 'message' => 'Penitip not found'
             ], 404);
         }
 
+        // Ambil semua nota_penitipan dalam array
+        $notaPenitipanArray = $penitipans->pluck('nota_penitipan')->toArray();
+
+        // Cari semua barang yang nota_penitipan-nya ada di array tersebut
         $barangs = Barang::with(['subkategori', 'fotoBarangs'])
-            ->where('nota_penitipan', $penitipan->nota_penitipan)
+            ->whereIn('nota_penitipan', $notaPenitipanArray)
             ->get();
 
         return response()->json([
@@ -482,6 +486,7 @@ class BarangController extends Controller
             'message' => 'List of barangs for penitip with id ' . $id_penitip
         ]);
     }
+
 
     public function ambilBarangOlehPenitip(Request $request, Barang $barang)
     {
@@ -507,4 +512,44 @@ class BarangController extends Controller
             'message' => 'Barang berhasil diambil oleh penitip'
         ]);
     }
+
+    public function getBarangDiambil(){
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs', 'subkategori.kategori'])
+            ->whereIn('status_barang', ['diambil', 'diambil_kembali'])
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'List of barangs with status diambil'
+        ]);
+    }
+
+    public function updateStatusBarangDiambil(Barang $barang)
+    {
+        if ($barang->status_barang == 'terjual') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Barang sudah terjual'
+            ], 400);
+        } else if ($barang->status_barang == 'donasi') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Barang sudah didonasikan'
+            ], 400);
+        }
+
+        $barang->update([
+            'status_barang' => 'diambil_kembali',
+            'masa_penitipan' => now(),
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang berhasil diperbarui'
+        ]);
+    }
+
+
 }

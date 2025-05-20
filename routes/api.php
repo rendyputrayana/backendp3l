@@ -45,11 +45,6 @@ Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
 
-Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
-
-
-
-
 
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
@@ -130,6 +125,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
     Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
     Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
+    Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
+    Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
+    Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
