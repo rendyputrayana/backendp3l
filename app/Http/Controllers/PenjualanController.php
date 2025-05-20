@@ -97,7 +97,7 @@ class PenjualanController extends Controller
             if($request->metode_pengiriman == 'ambil'){
                 $status = 'belum_diambil';
             }else{
-                $status = 'belum_dikirm';
+                $status = 'belum_dikirim';
             }
      
              $penjualan = Penjualan::create([
@@ -375,6 +375,23 @@ class PenjualanController extends Controller
             'data' => $penjualan->values(), 
         ], 200);
     }
+
+    public function getPengirimanBarang()
+    {
+        $penjualans = Penjualan::with([
+                'rincianPenjualans.barang',
+                'alamat.pembeli'             
+            ])
+            ->where('status_pengiriman', 'disiapkan')
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        return response()->json([
+            'message' => 'Data pengiriman berhasil diambil.',
+            'data' => $penjualans
+        ]);
+    }
+
 
 
 
