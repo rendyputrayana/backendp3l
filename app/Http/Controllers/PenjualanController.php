@@ -256,16 +256,16 @@ class PenjualanController extends Controller
         $penjualan->status_penjualan = 'lunas';
         $penjualan->status_pengiriman = 'disiapkan';
         $penjualan->tanggal_lunas = now();
-        $penjualan->jadwal_pengiriman = now()->addDays(2);
-        $idJabatanKurir = Jabatan::where('nama_jabatan', 'Kurir')->value('id_jabatan');
+        //$penjualan->jadwal_pengiriman = now()->addDays(2);
+        //$idJabatanKurir = Jabatan::where('nama_jabatan', 'Kurir')->value('id_jabatan');
 
-        $pegawaiKurir = Pegawai::where('id_jabatan', $idJabatanKurir)->get();
+        //$pegawaiKurir = Pegawai::where('id_jabatan', $idJabatanKurir)->get();
 
-        $randomPegawai = $pegawaiKurir->random();
+        //$randomPegawai = $pegawaiKurir->random();
 
-        $idPegawai = $randomPegawai->id_pegawai;
+        //$idPegawai = $randomPegawai->id_pegawai;
 
-        $penjualan->id_pegawai = $idPegawai;
+        //$penjualan->id_pegawai = $idPegawai;
 
         $penjualan->save();
 
@@ -274,6 +274,44 @@ class PenjualanController extends Controller
             'data' => $penjualan
         ], 200);
      }
+
+    public function KonfirmasiPengirimanByGudang(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'jadwal_pengiriman' => 'required|date',
+        ]);
+    
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
+        $penjualan->status_pengiriman = 'dikirim'; 
+        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->save();
+
+        return response()->json([
+            'message' => 'Konfirmasi pengiriman berhasil.',
+            'data' => $penjualan
+        ], 200);
+    }
+
+    public function KonfirmasiPengambilanByGudang(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'jadwal_pengiriman' => 'required|date',
+        ]);
+
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->status_pengiriman = 'belum_diambil'; 
+        $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
+        $penjualan->save();
+
+        return response()->json([
+            'message' => 'Konfirmasi pengambilan berhasil.',
+            'data' => $penjualan
+        ], 200);
+    }
     
      
     

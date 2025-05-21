@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy']);
     Route::get('/pegawai/search/{keyword}', [PegawaiController::class, 'search']);
     Route::get('/allQc', [PegawaiController::class, 'getAllQC']);
+    Route::get('/allKurir', [PegawaiController::class, 'getAllKurir']);
 
 
     // --------- Hunter ---------
@@ -155,6 +156,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
     Route::post('/uploadBuktiPembayaran', [PenjualanController::class, 'uploadBuktiPembayaran']);
     Route::get('/penjualanVerifikasi', [PenjualanController::class, 'getPenjualanReadyVerifikasi']);
+    Route::post('/verifPengirimanGudang', [PenjualanController::class, 'KonfirmasiPengirimanByGudang']);
+    Route::post('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
 
     // --------- DISKUSI PRODUK ---------
     Route::post('/addByPembeli/{barang}', [DiskusiProdukController::class, 'addByPembeli']);

@@ -203,4 +203,21 @@ class PegawaiController extends Controller
         }
     }
     
+
+    public function getAllKurir()
+    {
+        $kurir = Pegawai::where('id_jabatan', 2)->get();
+        if ($kurir->isNotEmpty()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'List Kurir',
+                'data' => $kurir
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No results found'
+            ], 404);
+        }
+    }
 }

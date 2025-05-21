@@ -175,21 +175,6 @@ class BarangController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Barang $barang)
-    {
-
-        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
-    
-        return response()->json([
-            'status' => true,
-            'data' => $barang,
-            'message' => 'Barang details'
-        ]);
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Barang $barang)
@@ -197,12 +182,83 @@ class BarangController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(Request $request, Barang $barang)
     {
-        //
+        $request->validate([
+            'nama_barang' => 'sometimes|required|string|max:255',
+            'harga_barang' => 'sometimes|required|numeric',
+            'id_subkategori' => 'sometimes|required|exists:subkategoris,id_subkategori',
+            'id_pegawai' => 'nullable|exists:pegawais,id_pegawai',
+            'id_hunter' => 'nullable|exists:hunters,id_hunter',
+            'garansi' => 'nullable|date',
+            'fotos' => 'nullable|array',
+            'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'berat_barang' => 'nullable|numeric',
+        ]);
+
+        if ($request->filled('id_pegawai') && $request->filled('id_hunter')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Hanya boleh memilih id_pegawai atau id_hunter, tidak boleh keduanya.'
+            ], 400);
+        }
+
+        $harga_barang = $request->harga_barang ?? $barang->harga_barang;
+
+        if ($request->filled('id_pegawai')) {
+            $komisi_reuse = 0.2 * $harga_barang;
+            $komisi_hunter = null;
+        } else {
+            $komisi_reuse = 0.15 * $harga_barang;
+            $komisi_hunter = $request->filled('id_hunter') ? 0.05 * $harga_barang : null;
+        }
+
+        $komisi_penitip = 0.8 * $harga_barang;
+
+        $barang->update([
+            'nama_barang' => $request->nama_barang ?? $barang->nama_barang,
+            'harga_barang' => $harga_barang,
+            'id_subkategori' => $request->id_subkategori ?? $barang->id_subkategori,
+            'komisi_penitip' => $komisi_penitip,
+            'komisi_reuseMart' => $komisi_reuse,
+            'komisi_hunter' => $komisi_hunter,
+            'garansi' => $request->garansi ?? $barang->garansi,
+            'berat_barang' => $request->berat_barang ?? $barang->berat_barang,
+        ]);
+
+        if ($request->hasFile('fotos')) {
+            FotoBarang::where('kode_produk', $barang->kode_produk)->delete();
+
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->store('foto_barangs', 'public');
+                FotoBarang::create([
+                    'kode_produk' => $barang->kode_produk,
+                    'foto_barang' => 'storage/' . $path
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang updated successfully'
+        ]);
+    }
+
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Barang $barang)
+    {
+        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+    
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang details'
+        ]);
     }
 
     /**
