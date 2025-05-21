@@ -7,7 +7,7 @@ use App\Http\Controllers\{
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
-    MerchandiseController, RincianPenjualanController
+    MerchandiseController, RincianPenjualanController,  JabatanController
 };
 
 // ======================= AUTH =======================
@@ -31,6 +31,7 @@ Route::get('/alamat/search', [AlamatController::class, 'search']);
 
 Route::get('/kategori', [KategoriController::class, 'index']);
 Route::get('/subkategori/{kategori}', [SubkategoriController::class, 'show']);
+Route::get('/subkategori', [SubkategoriController::class, 'index']);
 
 // ======================= PUBLIC BARANG =======================
 Route::get('/barang', [BarangController::class, 'index']);
@@ -46,12 +47,16 @@ Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
 
 
+Route::get('/diskusiProduk', [DiskusiProdukController::class, 'index']);
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
 
+
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/jabatan', [JabatanController::class, 'index']);
 
     //---------- Donasi ---------
     Route::get('/donasi', [DonasiController::class, 'index']);
@@ -71,6 +76,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/updateAlamat/{id_alamat}', [AlamatController::class, 'update']);
     Route::delete('/deleteAlamat/{id_alamat}', [AlamatController::class, 'destroy']);
     Route::get('/alamatById/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
+    Route::put('/updateAlamat/{id_alamat}', [AlamatController::class, 'update']);
+    Route::delete('/deleteAlamat/{id_alamat}', [AlamatController::class, 'destroy']);
+    Route::get('/alamatById/{id_pembeli}', [AlamatController::class, 'getAlamatByIdPembeli']);
 
     // --------- PEGAWAI ---------
     Route::get('/pegawai', [PegawaiController::class, 'index']);
@@ -78,6 +86,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update']);
     Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy']);
     Route::get('/pegawai/search/{keyword}', [PegawaiController::class, 'search']);
+    Route::get('/allQc', [PegawaiController::class, 'getAllQC']);
+    Route::get('/allKurir', [PegawaiController::class, 'getAllKurir']);
+
+
+    // --------- Hunter ---------
+    Route::get('/hunter', [HunterController::class, 'index']);
 
     //---------- KURIR ---------
     Route::get('/kurir/{id_pagawai}', [PegawaiController::class, 'getPegawaiKurir']);
@@ -125,6 +139,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
     Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
     Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
+    Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
     Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
@@ -140,6 +155,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pengirimanHariIni', [PenjualanController::class, 'getJadwalHariini']);
     Route::put('/selesaikanPenjualanCS', [PenjualanController::class, 'selesaikanTransaksiCS']);
     Route::put('/selesaikanPenjualanKurir', [PenjualanController::class, 'selesaikanTransaksiKurir']);
+    Route::post('/uploadBuktiPembayaran', [PenjualanController::class, 'uploadBuktiPembayaran']);
+    Route::get('/penjualanVerifikasi', [PenjualanController::class, 'getPenjualanReadyVerifikasi']);
+    Route::post('/verifPengirimanGudang', [PenjualanController::class, 'KonfirmasiPengirimanByGudang']);
+    Route::post('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
     Route::GET('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
     Route::get('/pengirimanBarang', [PenjualanController::class, 'getPengirimanBarang']);
 

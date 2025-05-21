@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\DetailKeranjang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DetailKeranjangController extends Controller
 {
@@ -42,14 +43,29 @@ class DetailKeranjangController extends Controller
 
     public function showByIdPembeli($id_pembeli)
     {
-        $data = DetailKeranjang::where('id_pembeli', $id_pembeli)
+        // Subquery untuk ambil 1 foto per barang
+        $subquery = DB::table('foto_barangs')
+            ->select('kode_produk', DB::raw('MIN(id_foto) as min_id_foto'))
+            ->groupBy('kode_produk');
+
+        $data = DetailKeranjang::where('detail_keranjangs.id_pembeli', $id_pembeli)
             ->join('barangs', 'detail_keranjangs.kode_produk', '=', 'barangs.kode_produk')
+            ->joinSub($subquery, 'first_foto', function ($join) {
+                $join->on('barangs.kode_produk', '=', 'first_foto.kode_produk');
+            })
+            ->join('foto_barangs', 'foto_barangs.id_foto', '=', 'first_foto.min_id_foto')
+            ->join('penitipans', 'barangs.nota_penitipan', '=', 'penitipans.nota_penitipan')
+            ->join('penitips', 'penitipans.id_penitip', '=', 'penitips.id_penitip')
+            ->join('subkategoris', 'barangs.id_subkategori', '=', 'subkategoris.id_subkategori')
             ->select(
                 'detail_keranjangs.id_keranjang',
                 'detail_keranjangs.kode_produk',
                 'detail_keranjangs.id_pembeli',
                 'barangs.nama_barang',
-                'barangs.harga_barang'
+                'barangs.harga_barang',
+                'penitips.nama_penitip',
+                'foto_barangs.foto_barang',
+                'subkategoris.nama_subkategori',
             )
             ->get();
 
@@ -59,6 +75,8 @@ class DetailKeranjangController extends Controller
             'message' => 'List of all detail keranjangs by id pembeli'
         ]);
     }
+
+
 
     public function addToKeranjang(Request $request)
     {

@@ -16,6 +16,7 @@ use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
 use App\Models\FotoBarang;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
 class PenjualanController extends Controller
@@ -45,7 +46,7 @@ class PenjualanController extends Controller
          $request->validate([
              'id_pembeli' => 'required|exists:pembelis,id_pembeli',
              'id_alamat' => 'exists:alamats,id_alamat',
-             'metode_pengiriman' => 'required|in:ambil,kirim,batal',
+             'metode_pengiriman' => 'required|in:ambil,kirim',
              'keranjang_ids' => 'required|array',
              'keranjang_ids.*' => 'exists:detail_keranjangs,id_keranjang',
              'poin' => 'nullable|integer',
@@ -59,6 +60,14 @@ class PenjualanController extends Controller
                              ->get();
      
              $diskon = $request->poin ? ($request->poin * 100) : 0;
+
+             foreach ($keranjangs as $item) {
+                if ($item->barang) {
+                    $item->barang->status_barang = 'terjual';
+                    $item->barang->save();
+                }
+            }
+
      
              $totalHarga = $keranjangs->sum(function($item) {
                  return $item->barang->harga_barang ?? 0;
@@ -107,6 +116,7 @@ class PenjualanController extends Controller
                  'metode_pengiriman' => $request->metode_pengiriman,
                  'ongkos_kirim' => $ongkosKirim,
                  'status_pengiriman' => $status,
+                 'poin' => $request->poin,
              ]);
      
              $pembeli = Pembeli::findOrFail($request->id_pembeli);
@@ -151,23 +161,60 @@ class PenjualanController extends Controller
          }
      }
 
+     public function uploadBuktiPembayaran(Request $request)
+     {
+         $request->validate([
+             'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+             'bukti_pembayaran' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+         ]);
+
+         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+
+         $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
+         $penjualan->bukti_pembayaran = Storage::url($path);
+         $penjualan->status_penjualan = 'menunggu_verifikasi';
+         $penjualan->save();
+
+         return response()->json([
+             'message' => 'Bukti pembayaran berhasil diunggah.',
+             'data' => $penjualan,
+             'status' => true
+         ], 200);
+     }
+
+     public function getPenjualanReadyVerifikasi()
+     {
+         $penjualan = Penjualan::where('status_penjualan', 'menunggu_verifikasi')->get();
+
+         if ($penjualan->isEmpty()) {
+             return response()->json([
+                 'message' => 'Tidak ada penjualan yang menunggu verifikasi.',
+             ], 404);
+         }
+
+         return response()->json([
+             'message' => 'Berhasil mendapatkan penjualan yang menunggu verifikasi.',
+             'data' => $penjualan,
+             'status' => true
+         ], 200);
+     }
+
      public function verifikasiPenjualan(Request $request)
      {
        $request->validate([
               'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
-              'bukti_pembayaran' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
 
-        if (Carbon::now()->greaterThan(Carbon::parse($penjualan->tanggal_transaksi)->addMinutes(15))) {
-            $penjualan->status_penjualan = 'batal';
-            $penjualan->save();
+        // if (Carbon::now()->greaterThan(Carbon::parse($penjualan->tanggal_transaksi)->addMinutes(15))) {
+        //     $penjualan->status_penjualan = 'batal';
+        //     $penjualan->save();
         
-            return response()->json([
-                'message' => 'Batas waktu verifikasi adalah 15 menit setelah transaksi.',
-            ], 400);
-        }
+        //     return response()->json([
+        //         'message' => 'Batas waktu verifikasi adalah 15 menit setelah transaksi.',
+        //     ], 400);
+        // }
 
         $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
 
@@ -184,6 +231,11 @@ class PenjualanController extends Controller
                 $penitip->save();
                 $barang->status_barang = 'terjual';
                 $barang->save();
+
+                Artisan::call('penjualan:push-barang-laku', [
+                    'nota_penitipan' => $barang->nota_penitipan,
+                    'kode_produk' => $barang->kode_produk,
+                ]);
             }
         }
 
@@ -201,21 +253,19 @@ class PenjualanController extends Controller
         $pembeli->poin_reward += $pendapatanPoin;
         $pembeli->save();
       
-        $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
-        $penjualan->bukti_pembayaran = Storage::url($path);
         $penjualan->status_penjualan = 'lunas';
         $penjualan->status_pengiriman = 'disiapkan';
         $penjualan->tanggal_lunas = now();
-        $penjualan->jadwal_pengiriman = now()->addDays(2);
-        $idJabatanKurir = Jabatan::where('nama_jabatan', 'Kurir')->value('id_jabatan');
+        //$penjualan->jadwal_pengiriman = now()->addDays(2);
+        //$idJabatanKurir = Jabatan::where('nama_jabatan', 'Kurir')->value('id_jabatan');
 
-        $pegawaiKurir = Pegawai::where('id_jabatan', $idJabatanKurir)->get();
+        //$pegawaiKurir = Pegawai::where('id_jabatan', $idJabatanKurir)->get();
 
-        $randomPegawai = $pegawaiKurir->random();
+        //$randomPegawai = $pegawaiKurir->random();
 
-        $idPegawai = $randomPegawai->id_pegawai;
+        //$idPegawai = $randomPegawai->id_pegawai;
 
-        $penjualan->id_pegawai = $idPegawai;
+        //$penjualan->id_pegawai = $idPegawai;
 
         $penjualan->save();
 
@@ -224,6 +274,44 @@ class PenjualanController extends Controller
             'data' => $penjualan
         ], 200);
      }
+
+    public function KonfirmasiPengirimanByGudang(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'jadwal_pengiriman' => 'required|date',
+        ]);
+    
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
+        $penjualan->status_pengiriman = 'dikirim'; 
+        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->save();
+
+        return response()->json([
+            'message' => 'Konfirmasi pengiriman berhasil.',
+            'data' => $penjualan
+        ], 200);
+    }
+
+    public function KonfirmasiPengambilanByGudang(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'jadwal_pengiriman' => 'required|date',
+        ]);
+
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->status_pengiriman = 'belum_diambil'; 
+        $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
+        $penjualan->save();
+
+        return response()->json([
+            'message' => 'Konfirmasi pengambilan berhasil.',
+            'data' => $penjualan
+        ], 200);
+    }
     
      
     

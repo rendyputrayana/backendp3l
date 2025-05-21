@@ -12,7 +12,19 @@ class HunterController extends Controller
      */
     public function index()
     {
-        //
+        $hunter = Hunter::all();
+        if(!$hunter){
+            return response()->json([
+                'message'=>'Hunter not found',
+                'status'=> false,
+                
+            ]);
+        }
+        return response()->json([
+            'message'=>'List Hunter',
+            'status'=> true,
+            'data'=>$hunter
+        ]);
     }
 
     /**

@@ -23,9 +23,10 @@ class Penjualan extends Model
         'status_pengiriman',
         'metode_pengiriman',
         'bukti_pembayaran',
-        'id_alamat'
+        'id_alamat',
+        'poin',
     ];
-    public $timestamps = false;
+    public $timestamps = true;
     
     public function alamat()
     {
