@@ -7,7 +7,7 @@ use App\Http\Controllers\{
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
-    MerchandiseController, JabatanController
+    MerchandiseController, RincianPenjualanController,  JabatanController
 };
 
 // ======================= AUTH =======================
@@ -40,15 +40,14 @@ Route::get('/barang/{barang}', [BarangController::class, 'show']);
 Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangByIdPenitip']);
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
 Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
+Route::get('/showBarangByIdPenitip/{id_penitip}', [BarangController::class, 'showBarangByIdPenitip']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
 Route::get('/foto-barang/kode_produk/{kode_produk}', [FotoBarangController::class, 'getByBarangId']);
 
 
-
 Route::get('/diskusiProduk', [DiskusiProdukController::class, 'index']);
-
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
@@ -141,6 +140,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
     Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
     Route::get('/penitipan/{id_penitip}', [BarangController::class, 'getByIdPenitip']);
+    Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
+    Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
+    Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
@@ -153,11 +155,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pengirimanHariIni', [PenjualanController::class, 'getJadwalHariini']);
     Route::put('/selesaikanPenjualanCS', [PenjualanController::class, 'selesaikanTransaksiCS']);
     Route::put('/selesaikanPenjualanKurir', [PenjualanController::class, 'selesaikanTransaksiKurir']);
-    Route::get('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
     Route::post('/uploadBuktiPembayaran', [PenjualanController::class, 'uploadBuktiPembayaran']);
     Route::get('/penjualanVerifikasi', [PenjualanController::class, 'getPenjualanReadyVerifikasi']);
     Route::post('/verifPengirimanGudang', [PenjualanController::class, 'KonfirmasiPengirimanByGudang']);
     Route::post('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
+    Route::GET('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
+    Route::get('/pengirimanBarang', [PenjualanController::class, 'getPengirimanBarang']);
+
+    // --------- RINCIAN PENJUALAN ---------
+    Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
+
 
     // --------- DISKUSI PRODUK ---------
     Route::post('/addByPembeli/{barang}', [DiskusiProdukController::class, 'addByPembeli']);
