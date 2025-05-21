@@ -7,6 +7,25 @@ use Illuminate\Http\Request;
 
 class RincianPenjualanController extends Controller
 {
+
+    public function getAllPengirimanBarang()
+    {
+        $rincian = RincianPenjualan::with([
+            'barang',
+            'penjualan.alamat.pembeli'
+        ])
+        ->whereHas('penjualan', function ($query) {
+            $query->where('status_pengiriman', 'disiapkan');
+        })
+        ->orderByDesc('id_rincian_penjualan')
+        ->get();
+
+        return response()->json([
+            'message' => 'Data pengiriman berhasil diambil.',
+            'data' => $rincian
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */
