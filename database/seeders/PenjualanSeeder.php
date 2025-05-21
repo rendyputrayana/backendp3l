@@ -74,6 +74,7 @@ class PenjualanSeeder extends Seeder
                     : null,
                 'id_pegawai' => $id_pegawai,
                 'id_alamat' => $id_pembeli,
+                'poin' => null,
             ];
         }
 
@@ -112,7 +113,7 @@ class PenjualanSeeder extends Seeder
                 'id_pegawai' => $id_pegawai,
                 'kode_produk' => $produk->kode_produk,
                 'isi_diskusi' => $faker->sentence(10),
-                'tanggal_diskusi' => $faker->dateTimeBetween('-1 year', 'now'),
+                'tanggal_diskusi' => $faker->dateTimeBetween('-1 year', 'now')
             ];
 }
 

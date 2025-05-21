@@ -175,21 +175,6 @@ class BarangController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Barang $barang)
-    {
-
-        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
-    
-        return response()->json([
-            'status' => true,
-            'data' => $barang,
-            'message' => 'Barang details'
-        ]);
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Barang $barang)
@@ -197,12 +182,83 @@ class BarangController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(Request $request, Barang $barang)
     {
-        //
+        $request->validate([
+            'nama_barang' => 'sometimes|required|string|max:255',
+            'harga_barang' => 'sometimes|required|numeric',
+            'id_subkategori' => 'sometimes|required|exists:subkategoris,id_subkategori',
+            'id_pegawai' => 'nullable|exists:pegawais,id_pegawai',
+            'id_hunter' => 'nullable|exists:hunters,id_hunter',
+            'garansi' => 'nullable|date',
+            'fotos' => 'nullable|array',
+            'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'berat_barang' => 'nullable|numeric',
+        ]);
+
+        if ($request->filled('id_pegawai') && $request->filled('id_hunter')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Hanya boleh memilih id_pegawai atau id_hunter, tidak boleh keduanya.'
+            ], 400);
+        }
+
+        $harga_barang = $request->harga_barang ?? $barang->harga_barang;
+
+        if ($request->filled('id_pegawai')) {
+            $komisi_reuse = 0.2 * $harga_barang;
+            $komisi_hunter = null;
+        } else {
+            $komisi_reuse = 0.15 * $harga_barang;
+            $komisi_hunter = $request->filled('id_hunter') ? 0.05 * $harga_barang : null;
+        }
+
+        $komisi_penitip = 0.8 * $harga_barang;
+
+        $barang->update([
+            'nama_barang' => $request->nama_barang ?? $barang->nama_barang,
+            'harga_barang' => $harga_barang,
+            'id_subkategori' => $request->id_subkategori ?? $barang->id_subkategori,
+            'komisi_penitip' => $komisi_penitip,
+            'komisi_reuseMart' => $komisi_reuse,
+            'komisi_hunter' => $komisi_hunter,
+            'garansi' => $request->garansi ?? $barang->garansi,
+            'berat_barang' => $request->berat_barang ?? $barang->berat_barang,
+        ]);
+
+        if ($request->hasFile('fotos')) {
+            FotoBarang::where('kode_produk', $barang->kode_produk)->delete();
+
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->store('foto_barangs', 'public');
+                FotoBarang::create([
+                    'kode_produk' => $barang->kode_produk,
+                    'foto_barang' => 'storage/' . $path
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang updated successfully'
+        ]);
+    }
+
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Barang $barang)
+    {
+        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+    
+        return response()->json([
+            'status' => true,
+            'data' => $barang,
+            'message' => 'Barang details'
+        ]);
     }
 
     /**
@@ -397,11 +453,9 @@ class BarangController extends Controller
 
         $barangs = collect();
         foreach ($penitipans as $penitipan) {
-            // Ambil barang yang terkait dengan nota_penitipan
             $items = Barang::where('nota_penitipan', $penitipan->nota_penitipan)->get();
 
             foreach ($items as $barang) {
-                // Ambil foto barang yang terkait dengan kode_produk
                 $foto_barang = FotoBarang::where('kode_produk', $barang->kode_produk)->first();
                 $barang->foto_barang = $foto_barang;
             }
@@ -416,12 +470,10 @@ class BarangController extends Controller
             ], 404);
         }
 
-        // Filter barang yang statusnya 'terjual'
         $barangs = $barangs->filter(function ($barang) {
             return $barang->status_barang == 'terjual';
         });
 
-        // Ambil rincian penjualan berdasarkan kode_produk yang ada pada barangs
         $kode_produk_list = $barangs->pluck('kode_produk');
         $rincians = RincianPenjualan::whereIn('kode_produk', $kode_produk_list)->get();
 
@@ -432,34 +484,28 @@ class BarangController extends Controller
             ], 404);
         }
 
-        // Ambil penjualan yang terkait dengan rincian berdasarkan nota_penjualan
         $nota_penjualan_list = $rincians->pluck('nota_penjualan');
         $penjualans = Penjualan::whereIn('nota_penjualan', $nota_penjualan_list)->get();
 
-        // Gabungkan data barang dengan penjualan terkait
         $result = $barangs->map(function ($barang) use ($rincians, $penjualans) {
-            // Cari rincian penjualan yang sesuai dengan kode_produk barang
             $barang->rincian_penjualan = $rincians->where('kode_produk', $barang->kode_produk)->first();
             
-            // Cari penjualan terkait berdasarkan nota_penjualan dari rincian
             if ($barang->rincian_penjualan) {
                 $barang->penjualan = $penjualans->where('nota_penjualan', $barang->rincian_penjualan->nota_penjualan)->first();
             }
 
-            // Kembalikan barang yang sudah dilengkapi dengan rincian dan penjualan
             return $barang;
         });
 
-        // Menggunakan values() untuk memastikan hasilnya menjadi array numerik
         $result = $result->values();
 
-        // Kembalikan response dengan data barang dan penjualan terkait
         return response()->json([
             'status' => true,
             'data' => $result,
             'message' => 'List of penitipan for penitip with id ' . $id_penitip
         ]);
     }
+
 
     public function showBarangByIdPenitip($id_penitip)
     {
