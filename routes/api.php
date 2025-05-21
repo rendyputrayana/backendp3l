@@ -161,6 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
     Route::GET('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
     Route::get('/pengirimanBarang', [PenjualanController::class, 'getPengirimanBarang']);
+    Route::put('/tolakVerifikasi', [PenjualanController::class, 'tolakVerifikasiPembayaran']);
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
