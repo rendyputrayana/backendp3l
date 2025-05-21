@@ -157,8 +157,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/selesaikanPenjualanKurir', [PenjualanController::class, 'selesaikanTransaksiKurir']);
     Route::post('/uploadBuktiPembayaran', [PenjualanController::class, 'uploadBuktiPembayaran']);
     Route::get('/penjualanVerifikasi', [PenjualanController::class, 'getPenjualanReadyVerifikasi']);
-    Route::post('/verifPengirimanGudang', [PenjualanController::class, 'KonfirmasiPengirimanByGudang']);
-    Route::post('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
+    Route::put('/verifPengirimanGudang', [PenjualanController::class, 'KonfirmasiPengirimanByGudang']);
+    Route::put('/verifPengambilanGudang', [PenjualanController::class, 'KonfirmasiPengambilanByGudang']);
     Route::GET('/penjualan/pembeli/{id_pembeli}', [PenjualanController::class, 'getPenjualanByIdPembeli']);
     Route::get('/pengirimanBarang', [PenjualanController::class, 'getPengirimanBarang']);
 
