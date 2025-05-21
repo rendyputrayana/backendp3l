@@ -327,6 +327,7 @@ class PenjualanController extends Controller
 
     public function getPenjualanByIdPembeli($id_pembeli)
     {
+
         $alamatIds = Alamat::where('id_pembeli', $id_pembeli)->pluck('id_alamat');
 
         if ($alamatIds->isEmpty()) {
@@ -335,6 +336,7 @@ class PenjualanController extends Controller
                 'data' => [],
             ], 200);
         }
+
 
         $penjualan = Penjualan::whereIn('id_alamat', $alamatIds)->get();
 
@@ -363,6 +365,7 @@ class PenjualanController extends Controller
                 $rincian->barang = $barang->firstWhere('kode_produk', $rincian->kode_produk);
 
                 if ($rincian->barang) {
+
                     $rincian->barang->foto_barang = $fotoBarang
                         ->where('kode_produk', $rincian->barang->kode_produk)
                         ->values();
@@ -391,7 +394,6 @@ class PenjualanController extends Controller
             'data' => $penjualans
         ]);
     }
-
 
 
 

@@ -146,6 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
 
+
     // --------- DISKUSI PRODUK ---------
     Route::post('/addByPembeli/{barang}', [DiskusiProdukController::class, 'addByPembeli']);
     Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
