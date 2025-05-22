@@ -282,18 +282,37 @@ class PenjualanController extends Controller
             'id_pegawai' => 'required|exists:pegawais,id_pegawai',
             'jadwal_pengiriman' => 'required|date',
         ]);
-    
-        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+                    ->findOrFail($request->nota_penjualan);
+
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
-        $penjualan->status_pengiriman = 'dikirim'; 
+        $penjualan->status_pengiriman = 'dikirim';
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
 
+        $alamat = $penjualan->alamat;
+        $idPembeli = $alamat ? $alamat->id_pembeli : null;
+
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+
         return response()->json([
             'message' => 'Konfirmasi pengiriman berhasil.',
-            'data' => $penjualan
-        ], 200);
+            'data' => $penjualan,
+            'alamat' => $alamat,
+            'id_pembeli' => $idPembeli,
+            'id_penitip' => $idPenitips,
+        ]);
     }
+
+
 
     public function KonfirmasiPengambilanByGudang(Request $request)
     {
@@ -302,15 +321,31 @@ class PenjualanController extends Controller
             'jadwal_pengiriman' => 'required|date',
         ]);
 
-        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+                    ->findOrFail($request->nota_penjualan);
         $penjualan->status_pengiriman = 'belum_diambil'; 
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
         $penjualan->save();
 
+        $alamat = $penjualan->alamat;
+        $idPembeli = $alamat ? $alamat->id_pembeli : null;
+
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+
         return response()->json([
             'message' => 'Konfirmasi pengambilan berhasil.',
-            'data' => $penjualan
-        ], 200);
+            'data' => $penjualan,
+            'alamat' => $alamat,
+            'id_pembeli' => $idPembeli,
+            'id_penitip' => $idPenitips,
+        ]);
     }
     
      
@@ -367,9 +402,9 @@ class PenjualanController extends Controller
         $pegawai = Pegawai::find($request->id_pegawai);
         $jabatan = Jabatan::find($pegawai->id_jabatan);
 
-        if($jabatan->nama_jabatan != 'CS') {
+        if($jabatan->nama_jabatan != 'Pegawai Gudang') {
             return response()->json([
-                'message' => 'Pegawai bukan CS.',
+                'message' => 'Pegawai bukan Pegawai Gudang.',
             ], 400);
         }
 

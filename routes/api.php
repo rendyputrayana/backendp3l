@@ -164,6 +164,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
+    Route::get('/allBarangBelumDiambil', [RincianPenjualanController::class, 'getAllBarangBelumDiambil']);
 
 
     // --------- DISKUSI PRODUK ---------
