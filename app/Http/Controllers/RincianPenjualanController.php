@@ -26,6 +26,24 @@ class RincianPenjualanController extends Controller
         ]);
     }
 
+    public function getAllBarangBelumDiambil()
+    {
+        $rincian = RincianPenjualan::with([
+            'barang',
+            'penjualan.alamat.pembeli'
+        ])
+        ->whereHas('penjualan', function ($query) {
+            $query->where('status_pengiriman', 'belum_diambil');
+        })
+        ->orderByDesc('id_rincian_penjualan')
+        ->get();
+
+        return response()->json([
+            'message' => 'Data barang belum diambil berhasil diambil.',
+            'data' => $rincian
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */
