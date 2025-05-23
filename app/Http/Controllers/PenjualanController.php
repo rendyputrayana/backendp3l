@@ -607,6 +607,29 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getPenjualanById ($nota_penjualan)
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang.penitipan.penitip',
+            'alamat.pembeli.pengguna',
+            'pegawai',
+            'rincianPenjualans.barang.penitipan.pegawai'             
+        ])
+        ->where('nota_penjualan', $nota_penjualan)
+        ->first();
+
+        if (!$penjualan) {
+            return response()->json([
+                'message' => 'Data penjualan tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data penjualan berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
+
 
 
     

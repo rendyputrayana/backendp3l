@@ -14,9 +14,6 @@ class RincianPenjualanController extends Controller
             'barang',
             'penjualan.alamat.pembeli'
         ])
-        ->whereHas('penjualan', function ($query) {
-            $query->where('status_pengiriman', 'disiapkan');
-        })
         ->orderByDesc('id_rincian_penjualan')
         ->get();
 
