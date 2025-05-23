@@ -12,7 +12,7 @@ class PenitipanController extends Controller
      */
     public function index()
     {
-        $penitipans = Penitipan::all();
+        $penitipans = Penitipan::with('penitip', 'barangs', 'pegawai', 'hunter')->get();
         return response()->json([
             'status' => 'success',
             'data' => $penitipans,

@@ -269,6 +269,18 @@ class BarangController extends Controller
         //
     }
 
+    public function getAllBarang()
+    {
+        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'List of all barangs with penitips'
+        ]);
+    }
+
+
     public function search($keyword)
     {
         $barangs = Barang::where('nama_barang', 'like', '%' . $keyword . '%')

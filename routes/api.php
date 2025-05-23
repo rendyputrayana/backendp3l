@@ -7,7 +7,7 @@ use App\Http\Controllers\{
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
-    MerchandiseController, RincianPenjualanController,  JabatanController
+    MerchandiseController, RincianPenjualanController,  JabatanController, PenitipanController
 };
 
 // ======================= AUTH =======================
@@ -89,6 +89,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/allQc', [PegawaiController::class, 'getAllQC']);
     Route::get('/allKurir', [PegawaiController::class, 'getAllKurir']);
 
+    // --------- PENITIPAN ---------
+    Route::get('/penitipan', [PenitipanController::class, 'index']);
+
 
     // --------- Hunter ---------
     Route::get('/hunter', [HunterController::class, 'index']);
@@ -135,6 +138,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- BARANG ---------
     Route::post('/barang', [BarangController::class, 'store']);
+    Route::get('/barangAll', [BarangController::class, 'getAllBarang']);
     Route::put('/barang/{barang}/perpanjang', [BarangController::class, 'updateStatusPerpanjang']);
     Route::put('/barang/{barang}/ambil', [BarangController::class, 'ambilByPenitip']);
     Route::get('/barang/pembeli/{id_pembeli}', [BarangController::class, 'getByIdPembeli']);
