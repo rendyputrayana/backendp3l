@@ -18,6 +18,9 @@ use App\Models\Penitip;
 use App\Models\FotoBarang;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use App\Models\Pengguna;
+use App\Services\FcmService;
 
 class PenjualanController extends Controller
 {
@@ -59,7 +62,7 @@ class PenjualanController extends Controller
                              ->whereIn('id_keranjang', $request->keranjang_ids)
                              ->get();
      
-             $diskon = $request->poin ? ($request->poin * 100) : 0;
+             $diskon = $request->poin ? ($request->poin * 1000) : 0;
 
              foreach ($keranjangs as $item) {
                 if ($item->barang) {
@@ -72,7 +75,7 @@ class PenjualanController extends Controller
              $totalHarga = $keranjangs->sum(function($item) {
                  return $item->barang->harga_barang ?? 0;
              });
-     
+             
              $totalHarga -= $diskon;
 
              $ongkosKirim = 0;
@@ -89,6 +92,7 @@ class PenjualanController extends Controller
              if ($request->metode_pengiriman == 'kirim') {
                  $totalHarga += $totalHarga > 1500000 ? 0 : 100000;
              }
+
              $idAlamat = $request->id_alamat;
 
             if (!$idAlamat) {
@@ -199,6 +203,26 @@ class PenjualanController extends Controller
          ], 200);
      }
 
+     public function tolakVerifikasiPembayaran(Request $request)
+     {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+        ]);
+
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+
+        $penjualan->status_penjualan = 'batal';
+        $penjualan->status_pengiriman = 'batal';
+        $penjualan->metode_pengiriman = 'batal';
+        $penjualan->save();
+
+        return response()->json([
+            'message' => 'Verifikasi pembayaran ditolak.',
+            'data' => $penjualan,
+            'status' => true
+        ], 200);
+     }
+
      public function verifikasiPenjualan(Request $request)
      {
        $request->validate([
@@ -271,7 +295,8 @@ class PenjualanController extends Controller
 
         return response()->json([
             'message' => 'Verifikasi penjualan berhasil.',
-            'data' => $penjualan
+            'data' => $penjualan,
+            'status' => true
         ], 200);
      }
 
@@ -414,6 +439,45 @@ class PenjualanController extends Controller
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
 
+        $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
+        Log::info('Rincian Penjualan: ' . $rincian);
+
+        foreach ($rincian as $item) {
+            $barang = Barang::where('kode_produk', $item->kode_produk)->first();
+            Log::info('Barang: ' . $barang);
+            if ($barang) {
+                $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                Log::info('Penitipan: ' . $penitipan);
+                $penitip = Penitip::find($penitipan->id_penitip);
+                Log::info('Penitip: ' . $penitip);
+                if($penitip)
+                {
+                    $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Penitip Pengguna: ' . $penitip_pengguna);
+                    $fcmToken = $penitip_pengguna->fcm_token;
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Barang Anda telah diterima',
+                        'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
+                    );
+                }
+            }
+        }
+
+        $alamat = Alamat::findOrFail($penjualan->id_alamat);
+        Log::info('Alamat: ' . $alamat);
+        $pembeli = Pembeli::findOrFail($alamat->id_pembeli);
+        Log::info('Pembeli: ' . $pembeli);
+
+        $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+        Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+        $fcmToken = $pengguna_pembeli->fcm_token;
+        FcmService::sendNotification(
+            $fcmToken,
+            'Anda telah menerima barang penitipan',
+            'Barang anda telah diambil di CS, terima kasih telah berbelanja di ReuseMart'
+        );
+
         return response()->json([
             'message' => 'Transaksi berhasil diselesaikan.',
             'data' => $penjualan
@@ -441,6 +505,31 @@ class PenjualanController extends Controller
         $penjualan->tanggal_diterima = now();
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
+
+        $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
+        Log::info('Rincian Penjualan: ' . $rincian);
+
+        foreach ($rincian as $item) {
+            $barang = Barang::where('kode_produk', $item->kode_produk)->first();
+            Log::info('Barang: ' . $barang);
+            if ($barang) {
+                $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                Log::info('Penitipan: ' . $penitipan);
+                $penitip = Penitip::find($penitipan->id_penitip);
+                Log::info('Penitip: ' . $penitip);
+                if($penitip)
+                {
+                    $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Penitip Pengguna: ' . $penitip_pengguna);
+                    $fcmToken = $penitip_pengguna->fcm_token;
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Barang Anda telah diterima',
+                        'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
+                    );
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Transaksi berhasil diselesaikan.',
