@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Pengguna;
 use App\Services\FcmService;
 
+
+
 class PenjualanController extends Controller
 {
     /**
@@ -231,52 +233,6 @@ class PenjualanController extends Controller
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
 
-        // if (Carbon::now()->greaterThan(Carbon::parse($penjualan->tanggal_transaksi)->addMinutes(15))) {
-        //     $penjualan->status_penjualan = 'batal';
-        //     $penjualan->save();
-        
-        //     return response()->json([
-        //         'message' => 'Batas waktu verifikasi adalah 15 menit setelah transaksi.',
-        //     ], 400);
-        // }
-
-        $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
-
-        foreach ($rincian as $item) {
-            $barang = Barang::where('kode_produk', $item->kode_produk)->first();
-            if ($barang) {
-                $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
-                $penitip = Penitip::find($penitipan->id_penitip);
-                if (now()->diffInDays($penitipan->tanggal_penitipan) < 7) {
-                    $bonus = $barang->komisi_reuseMart * 0.1;
-                    $barang->komisi_penitip += $bonus;
-                }
-                $penitip->saldo += $barang->komisi_penitip;
-                $penitip->save();
-                $barang->status_barang = 'terjual';
-                $barang->save();
-
-                Artisan::call('penjualan:push-barang-laku', [
-                    'nota_penitipan' => $barang->nota_penitipan,
-                    'kode_produk' => $barang->kode_produk,
-                ]);
-            }
-        }
-
-        $totalHarga = $penjualan->total_harga;
-
-        $pendapatanPoin = floor($totalHarga / 10000);
-             if ($totalHarga > 500000) {
-                 $bonusPoin = floor($pendapatanPoin * 0.2);
-                 $pendapatanPoin += $bonusPoin;
-             }
-        
-
-        $idPembeli = Alamat::where('id_alamat', $penjualan->id_alamat)->value('id_pembeli');
-        $pembeli = Pembeli::findOrFail($idPembeli);
-        $pembeli->poin_reward += $pendapatanPoin;
-        $pembeli->save();
-      
         $penjualan->status_penjualan = 'lunas';
         $penjualan->status_pengiriman = 'disiapkan';
         $penjualan->tanggal_lunas = now();
@@ -307,6 +263,16 @@ class PenjualanController extends Controller
             'id_pegawai' => 'required|exists:pegawais,id_pegawai',
             'jadwal_pengiriman' => 'required|date',
         ]);
+
+        $jamHariIni = Carbon::now()->format('H:i:s');
+
+        Log::info('Jam Hari Ini: ' . $jamHariIni);
+
+        if($jamHariIni > '16:00:00') {
+            return response()->json([
+                'message' => 'Pengiriman hanya dapat dilakukan antara jam 08:00 hingga 17:00.',
+            ], 400);
+        }
 
         $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
                     ->findOrFail($request->nota_penjualan);
@@ -416,6 +382,14 @@ class PenjualanController extends Controller
             ], 200);
         }
     }
+    // if (Carbon::now()->greaterThan(Carbon::parse($penjualan->tanggal_transaksi)->addMinutes(15))) {
+    //     $penjualan->status_penjualan = 'batal';
+    //     $penjualan->save();
+    
+    //     return response()->json([
+    //         'message' => 'Batas waktu verifikasi adalah 15 menit setelah transaksi.',
+    //     ], 400);
+    // }
 
     public function selesaikanTransaksiCS(Request $request)
     {
@@ -424,32 +398,20 @@ class PenjualanController extends Controller
             'id_pegawai' => 'required|exists:pegawais,id_pegawai',
         ]);
 
-        $pegawai = Pegawai::find($request->id_pegawai);
-        $jabatan = Jabatan::find($pegawai->id_jabatan);
-
-        if($jabatan->nama_jabatan != 'Pegawai Gudang') {
-            return response()->json([
-                'message' => 'Pegawai bukan Pegawai Gudang.',
-            ], 400);
-        }
-
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
-        $penjualan->status_pengiriman = 'diterima';
-        $penjualan->tanggal_diterima = now();
-        $penjualan->id_pegawai = $request->id_pegawai;
-        $penjualan->save();
 
         $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
-        Log::info('Rincian Penjualan: ' . $rincian);
 
         foreach ($rincian as $item) {
             $barang = Barang::where('kode_produk', $item->kode_produk)->first();
-            Log::info('Barang: ' . $barang);
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
-                Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
-                Log::info('Penitip: ' . $penitip);
+                if (now()->diffInDays($penitipan->tanggal_penitipan) < 7) {
+                    $bonus = $barang->komisi_reuseMart * 0.1;
+                    $barang->komisi_penitip += $bonus;
+                }
+                $penitip->saldo += $barang->komisi_penitip;
                 if($penitip)
                 {
                     $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
@@ -461,14 +423,29 @@ class PenjualanController extends Controller
                         'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
                     );
                 }
+                $penitip->save();
+                $barang->status_barang = 'terjual';
+                $barang->save();
+
+                Artisan::call('penjualan:push-barang-laku', [
+                    'nota_penitipan' => $barang->nota_penitipan,
+                    'kode_produk' => $barang->kode_produk,
+                ]);
             }
         }
 
-        $alamat = Alamat::findOrFail($penjualan->id_alamat);
-        Log::info('Alamat: ' . $alamat);
-        $pembeli = Pembeli::findOrFail($alamat->id_pembeli);
-        Log::info('Pembeli: ' . $pembeli);
+        $totalHarga = $penjualan->total_harga;
 
+        $pendapatanPoin = floor($totalHarga / 10000);
+             if ($totalHarga > 500000) {
+                 $bonusPoin = floor($pendapatanPoin * 0.2);
+                 $pendapatanPoin += $bonusPoin;
+             }
+        
+
+        $idPembeli = Alamat::where('id_alamat', $penjualan->id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($idPembeli);
+        $pembeli->poin_reward += $pendapatanPoin;
         $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
         Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
         $fcmToken = $pengguna_pembeli->fcm_token;
@@ -477,7 +454,22 @@ class PenjualanController extends Controller
             'Anda telah menerima barang penitipan',
             'Barang anda telah diambil di CS, terima kasih telah berbelanja di ReuseMart'
         );
+        $pembeli->save();
 
+        $pegawai = Pegawai::find($request->id_pegawai);
+        $jabatan = Jabatan::find($pegawai->id_jabatan);
+
+        if($jabatan->nama_jabatan != 'Pegawai Gudang') {
+            return response()->json([
+                'message' => 'Pegawai bukan Pegawai Gudang.',
+            ], 400);
+        }
+
+        $penjualan->status_pengiriman = 'diterima';
+        $penjualan->tanggal_diterima = now();
+        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->save();
+        
         return response()->json([
             'message' => 'Transaksi berhasil diselesaikan.',
             'data' => $penjualan
@@ -517,17 +509,7 @@ class PenjualanController extends Controller
                 Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
                 Log::info('Penitip: ' . $penitip);
-                if($penitip)
-                {
-                    $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
-                    Log::info('Penitip Pengguna: ' . $penitip_pengguna);
-                    $fcmToken = $penitip_pengguna->fcm_token;
-                    FcmService::sendNotification(
-                        $fcmToken,
-                        'Barang Anda telah diterima',
-                        'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
-                    );
-                }
+                
             }
         }
 
