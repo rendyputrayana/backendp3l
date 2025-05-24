@@ -15,13 +15,31 @@ class RincianPenjualanController extends Controller
             'penjualan.alamat.pembeli'
         ])
         ->whereHas('penjualan', function ($query) {
-            $query->where('status_pengiriman', 'disiapkan');
+            $query->where('status_penjualan', 'lunas');
         })
         ->orderByDesc('id_rincian_penjualan')
         ->get();
 
         return response()->json([
-            'message' => 'Data pengiriman berhasil diambil.',
+            'message' => 'Data pengiriman dengan status penjualan lunas berhasil diambil.',
+            'data' => $rincian
+        ]);
+    }
+
+    public function getAllBarangBelumDiambil()
+    {
+        $rincian = RincianPenjualan::with([
+            'barang',
+            'penjualan.alamat.pembeli'
+        ])
+        ->whereHas('penjualan', function ($query) {
+            $query->where('status_pengiriman', 'belum_diambil');
+        })
+        ->orderByDesc('id_rincian_penjualan')
+        ->get();
+
+        return response()->json([
+            'message' => 'Data barang belum diambil berhasil diambil.',
             'data' => $rincian
         ]);
     }

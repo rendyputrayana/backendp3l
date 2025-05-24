@@ -20,7 +20,7 @@ return new class extends Migration
             $table->bigInteger('ongkos_kirim')->default(0);
             $table->integer('poin')->nullable();
             $table->date('tanggal_diterima')->nullable();
-            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal', 'disiapkan', 'belum_diambil']);
+            $table->enum('status_pengiriman', ['dikirim', 'belum_dikirim', 'diterima', 'batal', 'disiapkan', 'belum_diambil', 'hangus']);
             $table->enum('metode_pengiriman', ['ambil', 'kirim', 'batal']);
             $table->date('jadwal_pengiriman')->nullable();
             $table->string('bukti_pembayaran')->nullable();
