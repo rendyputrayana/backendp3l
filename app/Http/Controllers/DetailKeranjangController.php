@@ -6,6 +6,13 @@ use App\Models\Barang;
 use App\Models\DetailKeranjang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\FotoBarang;
+use App\Models\Penitipan;
+use App\Models\Penitip;
+use App\Models\Subkategori;
+use App\Models\Pembeli;
+
 
 class DetailKeranjangController extends Controller
 {
@@ -43,31 +50,47 @@ class DetailKeranjangController extends Controller
 
     public function showByIdPembeli($id_pembeli)
     {
-        // Subquery untuk ambil 1 foto per barang
-        $subquery = DB::table('foto_barangs')
-            ->select('kode_produk', DB::raw('MIN(id_foto) as min_id_foto'))
-            ->groupBy('kode_produk');
+            $subquery = FotoBarang::select('kode_produk', DB::raw('MIN(id_foto) as min_id_foto'))
+                ->groupBy('kode_produk');
 
-        $data = DetailKeranjang::where('detail_keranjangs.id_pembeli', $id_pembeli)
-            ->join('barangs', 'detail_keranjangs.kode_produk', '=', 'barangs.kode_produk')
-            ->joinSub($subquery, 'first_foto', function ($join) {
-                $join->on('barangs.kode_produk', '=', 'first_foto.kode_produk');
-            })
-            ->join('foto_barangs', 'foto_barangs.id_foto', '=', 'first_foto.min_id_foto')
-            ->join('penitipans', 'barangs.nota_penitipan', '=', 'penitipans.nota_penitipan')
-            ->join('penitips', 'penitipans.id_penitip', '=', 'penitips.id_penitip')
-            ->join('subkategoris', 'barangs.id_subkategori', '=', 'subkategoris.id_subkategori')
-            ->select(
-                'detail_keranjangs.id_keranjang',
-                'detail_keranjangs.kode_produk',
-                'detail_keranjangs.id_pembeli',
-                'barangs.nama_barang',
-                'barangs.harga_barang',
-                'penitips.nama_penitip',
-                'foto_barangs.foto_barang',
-                'subkategoris.nama_subkategori',
-            )
-            ->get();
+            $data = DetailKeranjang::where('id_pembeli', $id_pembeli)
+                ->join('barangs', 'detail_keranjangs.kode_produk', '=', 'barangs.kode_produk')
+                ->joinSub($subquery, 'first_foto', function ($join) {
+                    $join->on('barangs.kode_produk', '=', 'first_foto.kode_produk');
+                })
+                ->join('foto_barangs', 'foto_barangs.id_foto', '=', 'first_foto.min_id_foto')
+                ->join('penitipans', 'barangs.nota_penitipan', '=', 'penitipans.nota_penitipan')
+                ->join('penitips', 'penitipans.id_penitip', '=', 'penitips.id_penitip')
+                ->join('subkategoris', 'barangs.id_subkategori', '=', 'subkategoris.id_subkategori')
+                ->select(
+                    'detail_keranjangs.id_keranjang',
+                    'detail_keranjangs.kode_produk',
+                    'detail_keranjangs.id_pembeli',
+                    'barangs.nama_barang',
+                    'barangs.harga_barang',
+                    'penitips.nama_penitip',
+                    'foto_barangs.foto_barang',
+                    'subkategoris.nama_subkategori'
+                )
+                ->get();
+            if (!$data) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Detail keranjang tidak ditemukan untuk id pembeli: ' . $id_pembeli
+                ], 404);
+            }else{
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Detail keranjang ditemukan untuk id pembeli: ' . $id_pembeli,
+                    'data' => $data
+                ]);
+            }
+
+            Log::info('Detail Keranjang by id pembeli', [
+                'id_pembeli' => $id_pembeli,
+                'data_count' => $data->count(),
+                'data' => $data
+            ]);
 
         return response()->json([
             'status' => true,

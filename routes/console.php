@@ -21,3 +21,7 @@ Schedule::call(function () {
 Schedule::call(function () {
     Artisan::call('penjualan:h1-barang-habis');
 })->daily();
+
+Schedule::call(function () {
+    Artisan::call('transaksi:hangus-2-hari');
+})->everyMinute();

@@ -14,11 +14,14 @@ class RincianPenjualanController extends Controller
             'barang',
             'penjualan.alamat.pembeli'
         ])
+        ->whereHas('penjualan', function ($query) {
+            $query->where('status_penjualan', 'lunas');
+        })
         ->orderByDesc('id_rincian_penjualan')
         ->get();
 
         return response()->json([
-            'message' => 'Data pengiriman berhasil diambil.',
+            'message' => 'Data pengiriman dengan status penjualan lunas berhasil diambil.',
             'data' => $rincian
         ]);
     }

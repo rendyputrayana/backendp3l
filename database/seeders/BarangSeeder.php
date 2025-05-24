@@ -68,7 +68,7 @@ class BarangSeeder extends Seeder
         $statusOrder = array_merge(
             array_fill(0, 20, 'donasi'),
             array_fill(0, 30, 'tersedia'),
-            array_fill(0, 25, 'dikembalikan'),
+            array_fill(0, 25, 'diambil_kembali'),
             array_fill(0, 25, 'terjual')
         );
 
