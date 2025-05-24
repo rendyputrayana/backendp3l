@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('barangs', function (Blueprint $table) {
             $table->date('garansi')->nullable();
+            $table->foreign('nota_penitipan')->references('nota_penitipan')->on('penitipans')->onDelete('cascade');
         });
     }
 
@@ -22,7 +23,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->foreign('nota_penitipan')->references('nota_penitipan')->on('penitipans')->onDelete('cascade');
         });
     }
 };
