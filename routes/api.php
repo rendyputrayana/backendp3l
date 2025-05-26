@@ -41,6 +41,7 @@ Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangById
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
 Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
 Route::get('/showBarangByIdPenitip/{id_penitip}', [BarangController::class, 'showBarangByIdPenitip']);
+Route::put('/barang/{barang}', [BarangController::class, 'update']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
@@ -179,5 +180,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
 
     // --------- RATING ---------
-    Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);
+    Route::put('/addRating/{barang}', [BarangController::class, 'addRatings']);
 });
