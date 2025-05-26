@@ -11,6 +11,8 @@ use App\Models\FotoBarang;
 use App\Models\DetailKeranjang;
 use App\Models\Penitip;
 use App\Models\Penjualan;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class BarangController extends Controller
 {
@@ -74,7 +76,17 @@ class BarangController extends Controller
     
         $barang->rating_barang = $request->rating;
         $barang->save();
-    
+
+        $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+        $id_penitip = $penitipan->id_penitip;
+        
+        Log::info("ID Penitip: $id_penitip");
+            
+        // Artisan::call('rating:recalculate', [
+        //     'id_penitip' => $id_penitip,
+        //     'rating' => $request->rating
+        // ]);
+
         return response()->json([
             'message' => 'Rating berhasil ditambahkan.',
             'status' => true,
@@ -252,7 +264,7 @@ class BarangController extends Controller
      */
     public function show(Barang $barang)
     {
-        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+        $barang->load('penitipan.penitip.akumulasi', 'fotoBarangs', 'subkategori.kategori');
     
         return response()->json([
             'status' => true,
