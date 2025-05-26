@@ -82,10 +82,10 @@ class BarangController extends Controller
         
         Log::info("ID Penitip: $id_penitip");
             
-        // Artisan::call('rating:recalculate', [
-        //     'id_penitip' => $id_penitip,
-        //     'rating' => $request->rating
-        // ]);
+        Artisan::call('rating:recalculate', [
+            'id_penitip' => $id_penitip,
+            'rating' => $request->rating
+        ]);
 
         return response()->json([
             'message' => 'Rating berhasil ditambahkan.',

@@ -42,19 +42,29 @@ class recalculateRating extends Command
         }
 
         $akumulasi = AkumulasiRating::where('id_penitip', $penitip->id_penitip)->first();
+
+        if (!$akumulasi) {
+            $akumulasi = new AkumulasiRating();
+            $akumulasi->id_penitip = $penitip->id_penitip;
+            $akumulasi->akumulasi = 0.0;
+        }
+
+
         $penitipan = Penitipan::where('id_penitip', $penitip->id_penitip)->get();
         $barang = Barang::where('nota_penitipan', $penitipan->pluck('nota_penitipan'))->get();
         $barangCount = $barang->count();
         Log::info("Jumlah barang: $barangCount");
 
         $barangRated = Barang::whereIn('nota_penitipan', $penitipan->pluck('nota_penitipan'))
-                            ->whereNotNull('rating_barang')
-                            ->get();
+            ->where('rating_barang', '>', 0)
+            ->get();
+
         Log::info("Jumlah barang yang sudah di-rating: " . $barangRated->count());
 
         $jumlahRatingLama = $barangRated->count();
         $totalRatingLama = $barangRated->sum('rating_barang');
         Log::info("Jumlah rating lama: $jumlahRatingLama");
+        Log::info("Total rating lama: $totalRatingLama");
 
         $totalRatingBaru = $totalRatingLama + $rating;
         Log::info("Total rating baru: $totalRatingBaru");
@@ -64,7 +74,7 @@ class recalculateRating extends Command
         $meanRating = round($totalRatingBaru / $jumlahRatingBaru, 2);
         Log::info("Mean rating baru: $meanRating");
 
-        $akumulasi->rating = $meanRating;
+        $akumulasi->akumulasi = $meanRating;
         $akumulasi->save();
     }
 }
