@@ -612,8 +612,36 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getAllPenjualan ()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_penjualan', 'lunas')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        return response()->json([
+            'message' => 'Data penjualan berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
 
+    public function getAllPenjualanBelumDiambil()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_pengiriman', 'belum_diambil')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
 
+        return response()->json([
+            'message' => 'Data penjualan belum diambil berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
     
      /**
      * Display the specified resource.
