@@ -11,6 +11,7 @@ use App\Http\Controllers\{
 };
 
 // ======================= AUTH =======================
+// ======================= AUTH =======================
 Route::prefix('auth')->group(function () {
     Route::post('/register/pembeli', [AuthController::class, 'registerPembeli']);
     Route::post('/register/pegawai', [AuthController::class, 'registerPegawai']);
@@ -147,6 +148,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
+    Route::put('/barang/{barang}', [BarangController::class, 'update']);
+
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
