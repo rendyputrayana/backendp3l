@@ -32,8 +32,6 @@ class BarangController extends Controller
         ]);
     }
 
-
-
     public function tampilRating(Barang $barang)
     {
         return response()->json([
@@ -279,7 +277,7 @@ class BarangController extends Controller
      */
     public function show(Barang $barang)
     {
-        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+        $barang->load('penitipan.penitip.akumulasi', 'fotoBarangs', 'subkategori.kategori');
     
         return response()->json([
             'status' => true,
@@ -425,7 +423,7 @@ class BarangController extends Controller
 
     public function getBarangTersedia(Request $request)
     {
-        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+        $barangs = Barang::with(['penitipan.penitip.akumulasi', 'fotoBarangs'])
             ->where('status_barang', 'tersedia')
             ->paginate(12);
 
@@ -441,7 +439,7 @@ class BarangController extends Controller
         $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)
             ->pluck('id_subkategori');
 
-        $barang = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+        $barang = Barang::with(['penitipan.penitip.akumulasi', 'fotoBarangs'])
             ->whereIn('id_subkategori', $subkategoriIds)
             ->where('status_barang', 'tersedia')
             ->paginate(9);
@@ -635,6 +633,4 @@ class BarangController extends Controller
             'message' => 'Barang berhasil diperbarui'
         ]);
     }
-
-
 }

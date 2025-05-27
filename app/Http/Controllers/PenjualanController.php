@@ -247,6 +247,35 @@ class PenjualanController extends Controller
 
         //$penjualan->id_pegawai = $idPegawai;
 
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if(!$fcmToken) {
+                        return response()->json([
+                            'message' => 'Fcm token tidak ditemukan untuk penitip ini.',
+                        ], 400);
+                    }
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Barang anda telah laku',
+                        'Barang penitipan Anda telah laku terjual. Silahkan cek di aplikasi.'
+                    );
+                }
+            }
+        }
+
         $penjualan->save();
 
         return response()->json([
@@ -282,8 +311,42 @@ class PenjualanController extends Controller
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
 
+        $kurir = Pegawai::findOrFail($request->id_pegawai);
+        if($kurir){
+            $pengguna_kurir = Pengguna::where('id_pegawai', $kurir->id_pegawai)->first();
+            Log::info('Pengguna Kurir: ' . $pengguna_kurir);
+            $fcmToken = $pengguna_kurir->fcm_token;
+            if(!$fcmToken) {
+                return response()->json([
+                    'message' => 'Fcm token tidak ditemukan untuk kurir ini.',
+                ], 400);
+            }
+            FcmService::sendNotification(
+                $fcmToken,
+                'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                'Anda telah ditugaskan untuk mengirimkan barang pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+            );
+        }
+
         $alamat = $penjualan->alamat;
         $idPembeli = $alamat ? $alamat->id_pembeli : null;
+        Log::info('ID Pembeli: ' . $idPembeli);
+        if($idPembeli){
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if(!$fcmToken) {
+                return response()->json([
+                    'message' => 'Fcm token tidak ditemukan untuk pembeli ini.',
+                ], 400);
+            }
+            FcmService::sendNotification(
+                $fcmToken,
+                'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                'Barang Anda akan dikirim pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+            );
+        }
 
         $idPenitips = $penjualan->rincianPenjualans
             ->map(function($rincian) {
@@ -293,6 +356,26 @@ class PenjualanController extends Controller
             ->unique()
             ->values()    
             ->all();
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if(!$fcmToken) {
+                        return response()->json([
+                            'message' => 'Fcm token tidak ditemukan untuk penitip ini.',
+                        ], 400);
+                    }
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                        'Barang penitipan Anda akan dikirim pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                    );
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Konfirmasi pengiriman berhasil.',
@@ -321,6 +404,23 @@ class PenjualanController extends Controller
         $alamat = $penjualan->alamat;
         $idPembeli = $alamat ? $alamat->id_pembeli : null;
 
+        if($idPembeli) {
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if(!$fcmToken) {
+                return response()->json([
+                    'message' => 'Fcm token tidak ditemukan untuk pembeli ini.',
+                ], 400);
+            }
+            FcmService::sendNotification(
+                $fcmToken,
+                'Pengambilan Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                'Barang Anda dapat diambil pada sampai pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+            );
+        }
+
         $idPenitips = $penjualan->rincianPenjualans
             ->map(function($rincian) {
                 return optional($rincian->barang->penitipan)->id_penitip;
@@ -330,6 +430,27 @@ class PenjualanController extends Controller
             ->values()    
             ->all();
 
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if(!$fcmToken) {
+                        return response()->json([
+                            'message' => 'Fcm token tidak ditemukan untuk penitip ini.',
+                        ], 400);
+                    }
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Pengambilan Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                        'Barang penitipan Anda dapat diambil pada sampai pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                    );
+                }
+            }
+        }
+
         return response()->json([
             'message' => 'Konfirmasi pengambilan berhasil.',
             'data' => $penjualan,
@@ -337,6 +458,74 @@ class PenjualanController extends Controller
             'id_pembeli' => $idPembeli,
             'id_penitip' => $idPenitips,
         ]);
+    }
+
+    public function verifPengirimanKurir(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+        ]);
+
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->save();
+
+        $alamat = $penjualan->alamat;
+        $idPembeli = $alamat ? $alamat->id_pembeli : null;
+
+        if($idPembeli) {
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if(!$fcmToken) {
+                return response()->json([
+                    'message' => 'Fcm token tidak ditemukan untuk pembeli ini.',
+                ], 400);
+            }
+            FcmService::sendNotification(
+                $fcmToken,
+                'Barang anda sedang dalam proses pengiriman',
+                'Barang Anda sedang dalam proses pengiriman oleh kurir. Silahkan cek di aplikasi.'
+            );
+        }
+
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if(!$fcmToken) {
+                        return response()->json([
+                            'message' => 'Fcm token tidak ditemukan untuk penitip ini.',
+                        ], 400);
+                    }
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Barang penitipan Anda sedang dalam proses pengiriman',
+                        'Barang penitipan Anda sedang dalam proses pengiriman oleh kurir. Silahkan cek di aplikasi.'
+                    );
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Verifikasi pengiriman berhasil.',
+            'data' => $penjualan,
+            'status' => true
+        ], 200);
     }
     
      
@@ -449,6 +638,11 @@ class PenjualanController extends Controller
         $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
         Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
         $fcmToken = $pengguna_pembeli->fcm_token;
+        if(!$fcmToken) {
+            return response()->json([
+                'message' => 'Fcm token tidak ditemukan untuk pembeli ini.',
+            ], 400);
+        }
         FcmService::sendNotification(
             $fcmToken,
             'Anda telah menerima barang penitipan',
@@ -493,8 +687,8 @@ class PenjualanController extends Controller
         }
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
-        $penjualan->status_pengiriman = 'diterima';
-        $penjualan->tanggal_diterima = now();
+        $penjualan->status_pengiriman = 'dikirim';
+        //$penjualan->tanggal_diterima = now();
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
 
@@ -509,9 +703,43 @@ class PenjualanController extends Controller
                 Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
                 Log::info('Penitip: ' . $penitip);
-                
+                $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                Log::info('Penitip Pengguna: ' . $penitip_pengguna);
+                $fcmToken = $penitip_pengguna->fcm_token;
+                FcmService::sendNotification(
+                    $fcmToken,
+                    'Barang Anda telah dikirim',
+                    'Barang penitipan Anda telah dikirim oleh kurir, silahkan cek di aplikasi'
+                );
             }
         }
+
+        $totalHarga = $penjualan->total_harga;
+
+        $pendapatanPoin = floor($totalHarga / 10000);
+             if ($totalHarga > 500000) {
+                 $bonusPoin = floor($pendapatanPoin * 0.2);
+                 $pendapatanPoin += $bonusPoin;
+             }
+        
+
+        $idPembeli = Alamat::where('id_alamat', $penjualan->id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($idPembeli);
+        $pembeli->poin_reward += $pendapatanPoin;
+        $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+        Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+        $fcmToken = $pengguna_pembeli->fcm_token;
+        if(!$fcmToken) {
+            return response()->json([
+                'message' => 'Fcm token tidak ditemukan untuk pembeli ini.',
+            ], 400);
+        }
+        FcmService::sendNotification(
+            $fcmToken,
+            'Barang Anda telah dikirim',
+            'Barang anda telah dikirim oleh kurir, terima kasih telah berbelanja di ReuseMart'
+        );
+        $pembeli->save();
 
         return response()->json([
             'message' => 'Transaksi berhasil diselesaikan.',

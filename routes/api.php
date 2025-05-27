@@ -11,6 +11,7 @@ use App\Http\Controllers\{
 };
 
 // ======================= AUTH =======================
+// ======================= AUTH =======================
 Route::prefix('auth')->group(function () {
     Route::post('/register/pembeli', [AuthController::class, 'registerPembeli']);
     Route::post('/register/pegawai', [AuthController::class, 'registerPegawai']);
@@ -41,7 +42,6 @@ Route::get('/listBarang/{id_penitip}', [BarangController::class, 'listBarangById
 Route::get('/barangTersedia', [BarangController::class, 'getBarangTersedia']);
 Route::get('/barangByCategory/{id_kategori}', [BarangController::class, 'getBarangByIdKategori']);
 Route::get('/showBarangByIdPenitip/{id_penitip}', [BarangController::class, 'showBarangByIdPenitip']);
-Route::put('/barang/{barang}', [BarangController::class, 'update']);
 
 Route::get('/foto-barang', [FotoBarangController::class, 'index']);
 Route::get('/foto-barang/{fotoBarang}', [FotoBarangController::class, 'show']);
@@ -148,6 +148,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
+    Route::put('/barang/{barang}', [BarangController::class, 'update']);
+
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
@@ -180,5 +182,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
 
     // --------- RATING ---------
-    Route::put('/addRating/{barang}', [BarangController::class, 'addRatings']);
+    Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);
 });
