@@ -802,6 +802,34 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getPengirimanByIdKurir($id_kurir)
+    {
+        $hariIni = Carbon::now()->format('Y-m-d');
+
+        $penjualans = Penjualan::with([
+                'alamat.pembeli'         
+            ])
+            ->where('id_pegawai', $id_kurir)
+            ->where('status_pengiriman', 'dikirim')
+            ->where('jadwal_pengiriman', '=', $hariIni)
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        if ($penjualans->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada pengiriman untuk kurir ini.',
+                'data' => [],
+                'status' => false
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data pengiriman berhasil diambil.',
+            'data' => $penjualans,
+            'status' => true
+        ]);
+    }
+
     public function getPenjualanById ($nota_penjualan)
     {
         $penjualan = Penjualan::with([
