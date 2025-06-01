@@ -9,72 +9,63 @@ use App\Models\Penitipan;
 use App\Models\Barang;
 use Illuminate\Support\Facades\Log;
 
-class recalculateRating extends Command
+class RecalculateRating extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'rating:recalculate {id_penitip} {rating}';
+    protected $signature = 'rating:recalculate {id_penitip}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Hitung ulang rata-rata rating berdasarkan barang yang sudah diberi rating oleh pembeli';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-
         $id_penitip = $this->argument('id_penitip');
-        $rating = $this->argument('rating');
-
 
         $penitip = Penitip::find($id_penitip);
         if (!$penitip) {
-            $this->error('Penitip not found.');
+            $this->error('Penitip tidak ditemukan.');
             return;
         }
 
-        $akumulasi = AkumulasiRating::where('id_penitip', $penitip->id_penitip)->first();
-
-        if (!$akumulasi) {
-            $akumulasi = new AkumulasiRating();
-            $akumulasi->id_penitip = $penitip->id_penitip;
-            $akumulasi->akumulasi = 0.0;
-        }
-
+        $akumulasi = AkumulasiRating::firstOrNew(['id_penitip' => $penitip->id_penitip]);
+        $akumulasi->akumulasi = 0.0;
 
         $penitipan = Penitipan::where('id_penitip', $penitip->id_penitip)->get();
-        $barang = Barang::where('nota_penitipan', $penitipan->pluck('nota_penitipan'))->get();
-        $barangCount = $barang->count();
-        Log::info("Jumlah barang: $barangCount");
 
-        $barangRated = Barang::whereIn('nota_penitipan', $penitipan->pluck('nota_penitipan'))
+        if ($penitipan->isEmpty()) {
+            $this->warn("Tidak ada penitipan untuk penitip ini.");
+            $akumulasi->akumulasi = 0.0;
+            $akumulasi->save();
+            return;
+        }
+
+        $notaList = $penitipan->pluck('nota_penitipan');
+
+        $barangRated = Barang::whereIn('nota_penitipan', $notaList)
             ->where('rating_barang', '>', 0)
             ->get();
 
-        Log::info("Jumlah barang yang sudah di-rating: " . $barangRated->count());
+        $jumlahRating = $barangRated->count();
+        $totalRating = $barangRated->sum('rating_barang');
 
-        $jumlahRatingLama = $barangRated->count();
-        $totalRatingLama = $barangRated->sum('rating_barang');
-        Log::info("Jumlah rating lama: $jumlahRatingLama");
-        Log::info("Total rating lama: $totalRatingLama");
+        Log::info("Penitip ID: $id_penitip | Total Rating: $totalRating | Jumlah Barang Dirating: $jumlahRating");
 
-        $totalRatingBaru = $totalRatingLama + $rating;
-        Log::info("Total rating baru: $totalRatingBaru");
-        $jumlahRatingBaru = $jumlahRatingLama + 1;
-        Log::info("Jumlah rating baru: $jumlahRatingBaru");
-
-        $meanRating = round($totalRatingBaru / $jumlahRatingBaru, 2);
-        Log::info("Mean rating baru: $meanRating");
+        $meanRating = $jumlahRating > 0 ? round($totalRating / $jumlahRating, 2) : 0.0;
 
         $akumulasi->akumulasi = $meanRating;
         $akumulasi->save();
+
+        $this->info("Akumulasi rating berhasil diperbarui menjadi $meanRating");
     }
 }

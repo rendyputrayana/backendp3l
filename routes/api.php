@@ -171,6 +171,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tolakVerifikasi', [PenjualanController::class, 'tolakVerifikasiPembayaran']);
     Route::get('/penjualanKurir', [PenjualanController::class, 'getPenjualanKurir']);
     Route::get('/penjualan/{nota_penjualan}', [PenjualanController::class, 'getPenjualanById']);
+    Route::post('/penjualan/kurir', [PenjualanController::class, 'verifPengirimanKurir']);
+    Route::get('/penjualan/kurir/{id_kurir}', [PenjualanController::class, 'getPengirimanByIdKurir']);
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
@@ -183,4 +185,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- RATING ---------
     Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);
+
+
 });

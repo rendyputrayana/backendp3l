@@ -11,8 +11,9 @@ use App\Models\FotoBarang;
 use App\Models\DetailKeranjang;
 use App\Models\Penitip;
 use App\Models\Penjualan;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BarangController extends Controller
 {
@@ -74,7 +75,16 @@ class BarangController extends Controller
     
         $barang->rating_barang = $request->rating;
         $barang->save();
-    
+
+        $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+        $id_penitip = $penitipan->id_penitip;
+        
+        Log::info("ID Penitip: $id_penitip");
+            
+        Artisan::call('rating:recalculate', [
+            'id_penitip' => $id_penitip
+        ]);
+
         return response()->json([
             'message' => 'Rating berhasil ditambahkan.',
             'status' => true,
@@ -131,7 +141,7 @@ class BarangController extends Controller
 
         if($request->filled('id_pegawai')) {
             $komisi_reuse = 0.2 * $request->harga_barang;
-            $komisi_hunter = null;
+            $komisi_hunter = 0;
         } else {
             $komisi_reuse = 0.15 * $request->harga_barang;
             $komisi_hunter = $request->filled('id_hunter') ? 0.05 * $request->harga_barang : null;
@@ -149,7 +159,7 @@ class BarangController extends Controller
             'status_barang' => 'tersedia',
             'komisi_penitip' => $komisi_penitip,
             'komisi_reuseMart' => $komisi_reuse,
-            'komisi_hunter' => $komisi_hunter ?? null,
+            'komisi_hunter' => $komisi_hunter ?? 0,
             'perpanjangan' => false,
             'garansi' => $request->garansi,
             'berat_barang' => $request->berat_barang,
