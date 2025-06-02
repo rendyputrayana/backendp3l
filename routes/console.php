@@ -9,9 +9,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::call(function () {
-    Artisan::call('transaksi:auto-batal');
-})->everyMinute();
+// Schedule::call(function () {
+//     Artisan::call('transaksi:auto-batal');
+// })->everyMinute();
 
 
 Schedule::call(function () {
@@ -20,8 +20,8 @@ Schedule::call(function () {
 
 Schedule::call(function () {
     Artisan::call('penjualan:h1-barang-habis');
-})->daily();
+})->everyTenSeconds();
 
-Schedule::call(function () {
-    Artisan::call('transaksi:hangus-2-hari');
-})->everyMinute();
+// Schedule::call(function () {
+//     Artisan::call('transaksi:hangus-2-hari');
+// })->everyMinute();

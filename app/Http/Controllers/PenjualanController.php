@@ -294,9 +294,9 @@ class PenjualanController extends Controller
 
         Log::info('Jam Hari Ini: ' . $jamHariIni);
 
-        if($jamHariIni > '16:00:00') {
+        if($request->jadwal_pengiriman == Carbon::now()->format('Y-m-d') && $jamHariIni > '16:00:00') {
             return response()->json([
-                'message' => 'Pengiriman hanya dapat dilakukan antara jam 08:00 hingga 17:00.',
+                'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
         }
 
