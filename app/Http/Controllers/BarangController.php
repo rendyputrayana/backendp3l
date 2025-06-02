@@ -11,6 +11,9 @@ use App\Models\FotoBarang;
 use App\Models\DetailKeranjang;
 use App\Models\Penitip;
 use App\Models\Penjualan;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BarangController extends Controller
 {
@@ -30,8 +33,6 @@ class BarangController extends Controller
         ]);
     }
 
-
-
     public function tampilRating(Barang $barang)
     {
         return response()->json([
@@ -42,7 +43,7 @@ class BarangController extends Controller
 
     }
 
-    public function addRating(Request $request, Barang $barang)
+    public function addRatings(Request $request, Barang $barang)
     {
         $request->validate([
             'id_pembeli' => 'required|exists:pembelis,id_pembeli',
@@ -74,14 +75,22 @@ class BarangController extends Controller
     
         $barang->rating_barang = $request->rating;
         $barang->save();
-    
+
+        $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+        $id_penitip = $penitipan->id_penitip;
+        
+        Log::info("ID Penitip: $id_penitip");
+            
+        Artisan::call('rating:recalculate', [
+            'id_penitip' => $id_penitip
+        ]);
+
         return response()->json([
             'message' => 'Rating berhasil ditambahkan.',
             'status' => true,
             'data' => $barang
         ]);
     }
-    
 
     /**
      * Store a newly created resource in storage.
@@ -132,7 +141,7 @@ class BarangController extends Controller
 
         if($request->filled('id_pegawai')) {
             $komisi_reuse = 0.2 * $request->harga_barang;
-            $komisi_hunter = null;
+            $komisi_hunter = 0;
         } else {
             $komisi_reuse = 0.15 * $request->harga_barang;
             $komisi_hunter = $request->filled('id_hunter') ? 0.05 * $request->harga_barang : null;
@@ -150,7 +159,7 @@ class BarangController extends Controller
             'status_barang' => 'tersedia',
             'komisi_penitip' => $komisi_penitip,
             'komisi_reuseMart' => $komisi_reuse,
-            'komisi_hunter' => $komisi_hunter ?? null,
+            'komisi_hunter' => $komisi_hunter ?? 0,
             'perpanjangan' => false,
             'garansi' => $request->garansi,
             'berat_barang' => $request->berat_barang,
@@ -183,7 +192,7 @@ class BarangController extends Controller
     }
 
 
-    public function update(Request $request, Barang $barang)
+     public function update(Request $request, Barang $barang)
     {
         $request->validate([
             'nama_barang' => 'sometimes|required|string|max:255',
@@ -205,6 +214,29 @@ class BarangController extends Controller
         }
 
         $harga_barang = $request->harga_barang ?? $barang->harga_barang;
+
+        $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+
+        if ($penitipan) {
+            $penitipanDataToUpdate = [];
+
+            if ($request->filled('id_pegawai') && !$request->filled('id_hunter')) {
+                $penitipanDataToUpdate['id_pegawai'] = $request->id_pegawai;
+                $penitipanDataToUpdate['id_hunter'] = null;
+            } elseif ($request->filled('id_hunter') && !$request->filled('id_pegawai')) {
+                $penitipanDataToUpdate['id_hunter'] = $request->id_hunter;
+                $penitipanDataToUpdate['id_pegawai'] = null;
+            }
+
+            if (!empty($penitipanDataToUpdate)) {
+                $penitipan->update($penitipanDataToUpdate);
+            }
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data penitipan terkait tidak ditemukan.'
+            ], 404);
+        }
 
         if ($request->filled('id_pegawai')) {
             $komisi_reuse = 0.2 * $harga_barang;
@@ -228,7 +260,11 @@ class BarangController extends Controller
         ]);
 
         if ($request->hasFile('fotos')) {
-            FotoBarang::where('kode_produk', $barang->kode_produk)->delete();
+            $old_fotos = FotoBarang::where('kode_produk', $barang->kode_produk)->get();
+            foreach ($old_fotos as $old_foto) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $old_foto->foto_barang));
+                $old_foto->delete();
+            }
 
             foreach ($request->file('fotos') as $foto) {
                 $path = $foto->store('foto_barangs', 'public');
@@ -241,18 +277,17 @@ class BarangController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $barang,
+            'data' => $barang->load('penitipan'),
             'message' => 'Barang updated successfully'
         ]);
     }
-
 
     /**
      * Display the specified resource.
      */
     public function show(Barang $barang)
     {
-        $barang->load('penitipan.penitip', 'fotoBarangs', 'subkategori.kategori');
+        $barang->load('penitipan.penitip.akumulasi', 'fotoBarangs', 'subkategori.kategori');
     
         return response()->json([
             'status' => true,
@@ -398,7 +433,7 @@ class BarangController extends Controller
 
     public function getBarangTersedia(Request $request)
     {
-        $barangs = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+        $barangs = Barang::with(['penitipan.penitip.akumulasi', 'fotoBarangs'])
             ->where('status_barang', 'tersedia')
             ->paginate(12);
 
@@ -414,7 +449,7 @@ class BarangController extends Controller
         $subkategoriIds = Subkategori::where('id_kategori', $id_kategori)
             ->pluck('id_subkategori');
 
-        $barang = Barang::with(['penitipan.penitip', 'fotoBarangs'])
+        $barang = Barang::with(['penitipan.penitip.akumulasi', 'fotoBarangs'])
             ->whereIn('id_subkategori', $subkategoriIds)
             ->where('status_barang', 'tersedia')
             ->paginate(9);
@@ -608,6 +643,4 @@ class BarangController extends Controller
             'message' => 'Barang berhasil diperbarui'
         ]);
     }
-
-
 }
