@@ -41,7 +41,7 @@ class PenitipController extends Controller
      */
     public function show(Penitip $penitip)
     {
-        $penitip = Penitip::find($penitip->id_penitip);
+        $penitip = Penitip::with('akumulasi')->find($penitip->id_penitip);
         if ($penitip) {
             return response()->json([
                 'status' => true,
