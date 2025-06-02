@@ -65,7 +65,7 @@ class PenjualanController extends Controller
                              ->whereIn('id_keranjang', $request->keranjang_ids)
                              ->get();
      
-             $diskon = $request->poin ? ($request->poin * 1000) : 0;
+             $diskon = $request->poin ? ($request->poin * 100) : 0;
 
              foreach ($keranjangs as $item) {
                 if ($item->barang) {
@@ -222,6 +222,12 @@ class PenjualanController extends Controller
                 $barang->save();
             }
         }
+
+        $id_alamat = $penjualan->id_alamat;
+        $id_pembeli = Alamat::where('id_alamat', $id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($id_pembeli);
+        $pembeli->poin_reward += $penjualan->poin;
+        $pembeli->save();
 
         $penjualan->status_penjualan = 'batal';
         $penjualan->status_pengiriman = 'batal';
