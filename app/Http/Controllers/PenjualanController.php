@@ -612,8 +612,59 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getAllPenjualan ()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_penjualan', 'lunas')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        return response()->json([
+            'message' => 'Data penjualan berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
 
+    public function getAllPenjualanBelumDiambil()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_pengiriman', 'belum_diambil')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
 
+        return response()->json([
+            'message' => 'Data penjualan belum diambil berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
+
+    public function getHistoryHunterByIdHunter($id_hunter)
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang.penitipan.hunter',
+        ])
+        ->whereHas('rincianPenjualans.barang.penitipan.hunter', function($query) use ($id_hunter) {
+            $query->where('id_hunter', $id_hunter);
+        })
+        ->where('status_pengiriman', 'diterima')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data penjualan untuk hunter ini.',
+                'data' => [],
+            ], 200);
+        }
+        return response()->json([
+            'message' => 'Data penjualan hunter berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
     
      /**
      * Display the specified resource.
