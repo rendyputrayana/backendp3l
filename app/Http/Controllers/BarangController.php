@@ -488,8 +488,9 @@ class BarangController extends Controller
 
     public function getByIdPenitip($id_penitip)
     {
-        // Ambil data penitipan yang terkait dengan id_penitip
-        $penitipans = Penitipan::where('id_penitip', $id_penitip)->get();
+        $penitipans = Penitipan::with(['penitip.akumulasi'])
+            ->where('id_penitip', $id_penitip)
+            ->get();
 
         if ($penitipans->isEmpty()) {
             return response()->json([
@@ -500,8 +501,10 @@ class BarangController extends Controller
 
         $barangs = collect();
         foreach ($penitipans as $penitipan) {
-            $items = Barang::where('nota_penitipan', $penitipan->nota_penitipan)->get();
-
+            $items = Barang::with(['penitipan.penitip.akumulasi', 'fotoBarangs'])
+                ->where('nota_penitipan', $penitipan->nota_penitipan)
+                ->get();
+                
             foreach ($items as $barang) {
                 $foto_barang = FotoBarang::where('kode_produk', $barang->kode_produk)->first();
                 $barang->foto_barang = $foto_barang;
@@ -556,7 +559,9 @@ class BarangController extends Controller
 
     public function showBarangByIdPenitip($id_penitip)
     {
-        $penitipans = Penitipan::where('id_penitip', $id_penitip)->get();
+       $penitipans = Penitipan::with(['penitip.akumulasi'])
+            ->where('id_penitip', $id_penitip)
+            ->get();
 
         if ($penitipans->isEmpty()) {
             return response()->json([
@@ -565,10 +570,8 @@ class BarangController extends Controller
             ], 404);
         }
 
-        // Ambil semua nota_penitipan dalam array
         $notaPenitipanArray = $penitipans->pluck('nota_penitipan')->toArray();
 
-        // Cari semua barang yang nota_penitipan-nya ada di array tersebut
         $barangs = Barang::with(['subkategori', 'fotoBarangs'])
             ->whereIn('nota_penitipan', $notaPenitipanArray)
             ->get();
