@@ -173,6 +173,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/penjualan/{nota_penjualan}', [PenjualanController::class, 'getPenjualanById']);
     Route::post('/penjualan/kurir', [PenjualanController::class, 'verifPengirimanKurir']);
     Route::get('/penjualan/kurir/{id_kurir}', [PenjualanController::class, 'getPengirimanByIdKurir']);
+    Route::get('/pengiriman/{id_kurir}', [PenjualanController::class, 'getHistoryPengirimanByIdKurir']);
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);

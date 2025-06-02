@@ -16,6 +16,7 @@ use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
 use App\Models\FotoBarang;
+use App\Models\Hunter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -578,6 +579,13 @@ class PenjualanController extends Controller
             $barang = Barang::where('kode_produk', $item->kode_produk)->first();
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 $penitip = Penitip::find($penitipan->id_penitip);
                 if (now()->diffInDays($penitipan->tanggal_penitipan) < 7) {
                     $bonus = $barang->komisi_reuseMart * 0.1;
@@ -684,6 +692,13 @@ class PenjualanController extends Controller
             Log::info('Barang: ' . $barang);
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
                 Log::info('Penitip: ' . $penitip);
@@ -825,6 +840,30 @@ class PenjualanController extends Controller
 
         return response()->json([
             'message' => 'Data pengiriman berhasil diambil.',
+            'data' => $penjualans,
+            'status' => true
+        ]);
+    }
+
+    public function getHistoryPengirimanByIdKurir($id_kurir)
+    {
+        $penjualans = Penjualan::with([
+                'alamat.pembeli'         
+            ])
+            ->where('id_pegawai', $id_kurir)
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        if ($penjualans->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada riwayat pengiriman untuk kurir ini.',
+                'data' => [],
+                'status' => false
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data riwayat pengiriman berhasil diambil.',
             'data' => $penjualans,
             'status' => true
         ]);
