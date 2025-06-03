@@ -11,6 +11,7 @@ use App\Http\Controllers\{
 };
 
 // ======================= AUTH =======================
+// ======================= AUTH =======================
 Route::prefix('auth')->group(function () {
     Route::post('/register/pembeli', [AuthController::class, 'registerPembeli']);
     Route::post('/register/pegawai', [AuthController::class, 'registerPegawai']);
@@ -147,6 +148,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/ambilBarang/{barang}', [BarangController::class, 'ambilBarangOlehPenitip']);
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
+    Route::put('/barang/{barang}', [BarangController::class, 'update']);
+
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
@@ -168,9 +171,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tolakVerifikasi', [PenjualanController::class, 'tolakVerifikasiPembayaran']);
     Route::get('/penjualanKurir', [PenjualanController::class, 'getPenjualanKurir']);
     Route::get('/penjualan/{nota_penjualan}', [PenjualanController::class, 'getPenjualanById']);
+
+    Route::post('/penjualan/kurir', [PenjualanController::class, 'verifPengirimanKurir']);
+    Route::get('/penjualan/kurir/{id_kurir}', [PenjualanController::class, 'getPengirimanByIdKurir']);
+    Route::get('/pengiriman/{id_kurir}', [PenjualanController::class, 'getHistoryPengirimanByIdKurir']);
+
     Route::get('/allPenjualan', [PenjualanController::class, 'getAllPenjualan']);
     Route::get('/allPenjualanBelumDiambil', [PenjualanController::class, 'getAllPenjualanBelumDiambil']);
     Route::get('/historyHunterByIdHunter/{id_hunter}', [PenjualanController::class, 'getHistoryHunterByIdHunter']);
+
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
@@ -182,5 +191,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
 
     // --------- RATING ---------
-    Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);
+    Route::put('/addRating/{barang}', [BarangController::class, 'addRatings']);
 });

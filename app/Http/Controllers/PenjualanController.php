@@ -16,6 +16,7 @@ use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
 use App\Models\FotoBarang;
+use App\Models\Hunter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -64,7 +65,7 @@ class PenjualanController extends Controller
                              ->whereIn('id_keranjang', $request->keranjang_ids)
                              ->get();
      
-             $diskon = $request->poin ? ($request->poin * 1000) : 0;
+             $diskon = $request->poin ? ($request->poin * 100) : 0;
 
              foreach ($keranjangs as $item) {
                 if ($item->barang) {
@@ -213,6 +214,21 @@ class PenjualanController extends Controller
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
 
+        $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
+        foreach ($rincian as $item) {
+            $barang = Barang::where('kode_produk', $item->kode_produk)->first();
+            if ($barang) {
+                $barang->status_barang = 'tersedia';
+                $barang->save();
+            }
+        }
+
+        $id_alamat = $penjualan->id_alamat;
+        $id_pembeli = Alamat::where('id_alamat', $id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($id_pembeli);
+        $pembeli->poin_reward += $penjualan->poin;
+        $pembeli->save();
+
         $penjualan->status_penjualan = 'batal';
         $penjualan->status_pengiriman = 'batal';
         $penjualan->metode_pengiriman = 'batal';
@@ -236,16 +252,32 @@ class PenjualanController extends Controller
         $penjualan->status_penjualan = 'lunas';
         $penjualan->status_pengiriman = 'disiapkan';
         $penjualan->tanggal_lunas = now();
-        //$penjualan->jadwal_pengiriman = now()->addDays(2);
-        //$idJabatanKurir = Jabatan::where('nama_jabatan', 'Kurir')->value('id_jabatan');
 
-        //$pegawaiKurir = Pegawai::where('id_jabatan', $idJabatanKurir)->get();
-
-        //$randomPegawai = $pegawaiKurir->random();
-
-        //$idPegawai = $randomPegawai->id_pegawai;
-
-        //$penjualan->id_pegawai = $idPegawai;
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if($fcmToken){
+                        FcmService::sendNotification(
+                            $fcmToken,
+                            'Barang anda telah laku',
+                            'Barang penitipan Anda telah laku terjual. Silahkan cek di aplikasi.'
+                        );
+                    }
+                }
+            }
+        }
 
         $penjualan->save();
 
@@ -268,22 +300,57 @@ class PenjualanController extends Controller
 
         Log::info('Jam Hari Ini: ' . $jamHariIni);
 
-        if($jamHariIni > '16:00:00') {
+        
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+        ->findOrFail($request->nota_penjualan);
+        Log::info('Penjualan cek: ' .Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s') > '16:00:00');
+        Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
+
+        
+        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+
+        if ($jamLunas > '16:00:00') {
             return response()->json([
-                'message' => 'Pengiriman hanya dapat dilakukan antara jam 08:00 hingga 17:00.',
+                'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
         }
-
-        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
-                    ->findOrFail($request->nota_penjualan);
 
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
         $penjualan->status_pengiriman = 'dikirim';
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
+        
+        $kurir = Pegawai::findOrFail($request->id_pegawai);
+        if($kurir){
+            $pengguna_kurir = Pengguna::where('id_pegawai', $kurir->id_pegawai)->first();
+            Log::info('Pengguna Kurir: ' . $pengguna_kurir);
+            $fcmToken = $pengguna_kurir->fcm_token;
+            if($fcmToken){
+                FcmService::sendNotification(
+                    $fcmToken,
+                    'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                    'Anda telah ditugaskan untuk mengirimkan barang pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                );
+            }
+        }
 
         $alamat = $penjualan->alamat;
         $idPembeli = $alamat ? $alamat->id_pembeli : null;
+        Log::info('ID Pembeli: ' . $idPembeli);
+        if($idPembeli){
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if($fcmToken)
+            {
+                FcmService::sendNotification(
+                    $fcmToken,
+                    'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                    'Barang Anda akan dikirim pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                );
+            }
+        }
 
         $idPenitips = $penjualan->rincianPenjualans
             ->map(function($rincian) {
@@ -293,6 +360,24 @@ class PenjualanController extends Controller
             ->unique()
             ->values()    
             ->all();
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if($fcmToken)
+                    {
+                        FcmService::sendNotification(
+                            $fcmToken,
+                            'Pengiriman Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                            'Barang penitipan Anda akan dikirim pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                        );
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Konfirmasi pengiriman berhasil.',
@@ -321,6 +406,21 @@ class PenjualanController extends Controller
         $alamat = $penjualan->alamat;
         $idPembeli = $alamat ? $alamat->id_pembeli : null;
 
+        if($idPembeli) {
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if($fcmToken)
+            {
+                FcmService::sendNotification(
+                    $fcmToken,
+                    'Pengambilan Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                    'Barang Anda dapat diambil pada sampai pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                );
+            }
+        }
+
         $idPenitips = $penjualan->rincianPenjualans
             ->map(function($rincian) {
                 return optional($rincian->barang->penitipan)->id_penitip;
@@ -330,6 +430,25 @@ class PenjualanController extends Controller
             ->values()    
             ->all();
 
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if($fcmToken)
+                    {
+                        FcmService::sendNotification(
+                            $fcmToken,
+                            'Pengambilan Barang dengan nota penjualan: ' . $penjualan->nota_penjualan,
+                            'Barang penitipan Anda dapat diambil pada sampai pada tanggal ' . $penjualan->jadwal_pengiriman . '. Silahkan cek di aplikasi.'
+                        );
+                    }
+                }
+            }
+        }
+
         return response()->json([
             'message' => 'Konfirmasi pengambilan berhasil.',
             'data' => $penjualan,
@@ -337,6 +456,72 @@ class PenjualanController extends Controller
             'id_pembeli' => $idPembeli,
             'id_penitip' => $idPenitips,
         ]);
+    }
+
+    public function verifPengirimanKurir(Request $request)
+    {
+        $request->validate([
+            'nota_penjualan' => 'required|exists:penjualans,nota_penjualan',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+        ]);
+
+        $penjualan = Penjualan::findOrFail($request->nota_penjualan);
+        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->status_pengiriman = 'diterima';
+        $penjualan->tanggal_diterima = now();
+        $penjualan->save();
+
+        $alamat = $penjualan->alamat;
+        $idPembeli = $alamat ? $alamat->id_pembeli : null;
+
+        if($idPembeli) {
+            $pembeli = Pembeli::findOrFail($idPembeli);
+            $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+            Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+            $fcmToken = $pengguna_pembeli->fcm_token;
+            if($fcmToken)
+            {
+                FcmService::sendNotification(
+                    $fcmToken,
+                    'Barang anda sedang dalam proses pengiriman',
+                    'Barang Anda sedang dalam proses pengiriman oleh kurir. Silahkan cek di aplikasi.'
+                );
+            }
+        }
+
+        $idPenitips = $penjualan->rincianPenjualans
+            ->map(function($rincian) {
+                return optional($rincian->barang->penitipan)->id_penitip;
+            })
+            ->filter()    
+            ->unique()
+            ->values()    
+            ->all();
+
+        if($idPenitips) {
+            foreach ($idPenitips as $idPenitip) {
+                $penitip = Penitip::find($idPenitip);
+                if ($penitip) {
+                    $pengguna_penitip = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                    Log::info('Pengguna Penitip: ' . $pengguna_penitip);
+                    $fcmToken = $pengguna_penitip->fcm_token;
+                    if($fcmToken)
+                    {
+                        FcmService::sendNotification(
+                            $fcmToken,
+                            'Barang penitipan Anda sedang dalam proses pengiriman',
+                            'Barang penitipan Anda sedang dalam proses pengiriman oleh kurir. Silahkan cek di aplikasi.'
+                        );
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Verifikasi pengiriman berhasil.',
+            'data' => $penjualan,
+            'status' => true
+        ], 200);
     }
     
      
@@ -406,6 +591,13 @@ class PenjualanController extends Controller
             $barang = Barang::where('kode_produk', $item->kode_produk)->first();
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 $penitip = Penitip::find($penitipan->id_penitip);
                 if (now()->diffInDays($penitipan->tanggal_penitipan) < 7) {
                     $bonus = $barang->komisi_reuseMart * 0.1;
@@ -417,11 +609,14 @@ class PenjualanController extends Controller
                     $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
                     Log::info('Penitip Pengguna: ' . $penitip_pengguna);
                     $fcmToken = $penitip_pengguna->fcm_token;
-                    FcmService::sendNotification(
-                        $fcmToken,
-                        'Barang Anda telah diterima',
-                        'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
-                    );
+                    if($fcmToken)
+                    {
+                        FcmService::sendNotification(
+                            $fcmToken,
+                            'Barang Anda telah diterima',
+                            'Barang penitipan Anda telah diambil oleh pembeli, silahkan cek di aplikasi'
+                        );
+                    }
                 }
                 $penitip->save();
                 $barang->status_barang = 'terjual';
@@ -449,11 +644,14 @@ class PenjualanController extends Controller
         $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
         Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
         $fcmToken = $pengguna_pembeli->fcm_token;
-        FcmService::sendNotification(
-            $fcmToken,
-            'Anda telah menerima barang penitipan',
-            'Barang anda telah diambil di CS, terima kasih telah berbelanja di ReuseMart'
-        );
+        if($fcmToken)
+        {
+            FcmService::sendNotification(
+                $fcmToken,
+                'Anda telah menerima barang penitipan',
+                'Barang anda telah diambil di CS, terima kasih telah berbelanja di ReuseMart'
+            );
+        }
         $pembeli->save();
 
         $pegawai = Pegawai::find($request->id_pegawai);
@@ -493,8 +691,8 @@ class PenjualanController extends Controller
         }
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
-        $penjualan->status_pengiriman = 'diterima';
-        $penjualan->tanggal_diterima = now();
+        $penjualan->status_pengiriman = 'dikirim';
+        //$penjualan->tanggal_diterima = now();
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
 
@@ -506,12 +704,54 @@ class PenjualanController extends Controller
             Log::info('Barang: ' . $barang);
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
                 Log::info('Penitip: ' . $penitip);
-                
+                $penitip_pengguna = Pengguna::where('id_penitip', $penitip->id_penitip)->first();
+                Log::info('Penitip Pengguna: ' . $penitip_pengguna);
+                $fcmToken = $penitip_pengguna->fcm_token;
+                if($fcmToken)
+                {
+                    FcmService::sendNotification(
+                        $fcmToken,
+                        'Barang Anda telah dikirim',
+                        'Barang penitipan Anda telah dikirim oleh kurir, silahkan cek di aplikasi'
+                    );
+                }
             }
         }
+
+        $totalHarga = $penjualan->total_harga;
+
+        $pendapatanPoin = floor($totalHarga / 10000);
+             if ($totalHarga > 500000) {
+                 $bonusPoin = floor($pendapatanPoin * 0.2);
+                 $pendapatanPoin += $bonusPoin;
+             }
+        
+
+        $idPembeli = Alamat::where('id_alamat', $penjualan->id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($idPembeli);
+        $pembeli->poin_reward += $pendapatanPoin;
+        $pengguna_pembeli = Pengguna::where('id_pembeli', $pembeli->id_pembeli)->first();
+        Log::info('Pengguna Pembeli: ' . $pengguna_pembeli);
+        $fcmToken = $pengguna_pembeli->fcm_token;
+        if($fcmToken)
+        {
+            FcmService::sendNotification(
+                $fcmToken,
+                'Barang Anda telah dikirim',
+                'Barang anda telah dikirim oleh kurir, terima kasih telah berbelanja di ReuseMart'
+            );
+        }
+        $pembeli->save();
 
         return response()->json([
             'message' => 'Transaksi berhasil diselesaikan.',
@@ -586,6 +826,58 @@ class PenjualanController extends Controller
         return response()->json([
             'message' => 'Data pengiriman berhasil diambil.',
             'data' => $penjualans
+        ]);
+    }
+
+    public function getPengirimanByIdKurir($id_kurir)
+    {
+        $hariIni = Carbon::now()->format('Y-m-d');
+
+        $penjualans = Penjualan::with([
+                'alamat.pembeli'         
+            ])
+            ->where('id_pegawai', $id_kurir)
+            ->where('status_pengiriman', 'dikirim')
+            ->where('jadwal_pengiriman', '=', $hariIni)
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        if ($penjualans->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada pengiriman untuk kurir ini.',
+                'data' => [],
+                'status' => false
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data pengiriman berhasil diambil.',
+            'data' => $penjualans,
+            'status' => true
+        ]);
+    }
+
+    public function getHistoryPengirimanByIdKurir($id_kurir)
+    {
+        $penjualans = Penjualan::with([
+                'alamat.pembeli'         
+            ])
+            ->where('id_pegawai', $id_kurir)
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        if ($penjualans->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada riwayat pengiriman untuk kurir ini.',
+                'data' => [],
+                'status' => false
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data riwayat pengiriman berhasil diambil.',
+            'data' => $penjualans,
+            'status' => true
         ]);
     }
 
