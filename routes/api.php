@@ -191,7 +191,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addByPegawai/{barang}', [DiskusiProdukController::class, 'addByPegawai']);
 
     // --------- RATING ---------
-    Route::put('/addRating/{barang}', [BarangController::class, 'addRating']);
-
-
+    Route::put('/addRating/{barang}', [BarangController::class, 'addRatings']);
 });

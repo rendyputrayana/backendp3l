@@ -65,7 +65,7 @@ class PenjualanController extends Controller
                              ->whereIn('id_keranjang', $request->keranjang_ids)
                              ->get();
      
-             $diskon = $request->poin ? ($request->poin * 1000) : 0;
+             $diskon = $request->poin ? ($request->poin * 100) : 0;
 
              foreach ($keranjangs as $item) {
                 if ($item->barang) {
@@ -223,6 +223,12 @@ class PenjualanController extends Controller
             }
         }
 
+        $id_alamat = $penjualan->id_alamat;
+        $id_pembeli = Alamat::where('id_alamat', $id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($id_pembeli);
+        $pembeli->poin_reward += $penjualan->poin;
+        $pembeli->save();
+
         $penjualan->status_penjualan = 'batal';
         $penjualan->status_pengiriman = 'batal';
         $penjualan->metode_pengiriman = 'batal';
@@ -294,20 +300,26 @@ class PenjualanController extends Controller
 
         Log::info('Jam Hari Ini: ' . $jamHariIni);
 
-        if($jamHariIni > '16:00:00') {
+        
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+        ->findOrFail($request->nota_penjualan);
+        Log::info('Penjualan cek: ' .Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s') > '16:00:00');
+        Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
+
+        
+        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+
+        if ($jamLunas > '16:00:00') {
             return response()->json([
-                'message' => 'Pengiriman hanya dapat dilakukan antara jam 08:00 hingga 17:00.',
+                'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
         }
-
-        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
-                    ->findOrFail($request->nota_penjualan);
 
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
         $penjualan->status_pengiriman = 'dikirim';
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
-
+        
         $kurir = Pegawai::findOrFail($request->id_pegawai);
         if($kurir){
             $pengguna_kurir = Pengguna::where('id_pegawai', $kurir->id_pegawai)->first();

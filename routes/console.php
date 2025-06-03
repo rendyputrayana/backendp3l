@@ -14,14 +14,14 @@ Schedule::call(function () {
 })->everyMinute();
 
 
-Schedule::call(function () {
-    Artisan::call('penjualan:h3-barang-habis');
-})->daily();
+// Schedule::call(function () {
+//     Artisan::call('penjualan:h3-barang-habis');
+// })->daily();
 
-Schedule::call(function () {
-    Artisan::call('penjualan:h1-barang-habis');
-})->daily();
+// Schedule::call(function () {
+//     Artisan::call('penjualan:h1-barang-habis');
+// })->everyTenSeconds();
 
-Schedule::call(function () {
-    Artisan::call('transaksi:hangus-2-hari');
-})->everyMinute();
+// Schedule::call(function () {
+//     Artisan::call('transaksi:hangus-2-hari');
+// })->everyMinute();
