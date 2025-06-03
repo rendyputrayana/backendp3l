@@ -300,20 +300,26 @@ class PenjualanController extends Controller
 
         Log::info('Jam Hari Ini: ' . $jamHariIni);
 
-        if($request->jadwal_pengiriman == Carbon::now()->format('Y-m-d') && $jamHariIni > '16:00:00') {
+        
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+        ->findOrFail($request->nota_penjualan);
+        Log::info('Penjualan cek: ' .Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s') > '16:00:00');
+        Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
+
+        
+        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+
+        if ($jamLunas > '16:00:00') {
             return response()->json([
                 'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
         }
 
-        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
-                    ->findOrFail($request->nota_penjualan);
-
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
         $penjualan->status_pengiriman = 'dikirim';
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
-
+        
         $kurir = Pegawai::findOrFail($request->id_pegawai);
         if($kurir){
             $pengguna_kurir = Pengguna::where('id_pegawai', $kurir->id_pegawai)->first();
