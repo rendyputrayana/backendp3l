@@ -22,7 +22,7 @@ class AutoBatalkanPenjualan extends Command
      */
     public function handle()
     {
-        $batasWaktu = Carbon::now()->subMinutes(15);
+        $batasWaktu = Carbon::now()->subMinutes(1);
         $penjualans = Penjualan::where('status_penjualan', 'belum_lunas')
             ->where('created_at', '<=', $batasWaktu)
             ->get();

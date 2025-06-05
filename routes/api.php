@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     PenukaranRewardController, RequestDonasiController, FotoBarangController,
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
-    MerchandiseController, RincianPenjualanController,  JabatanController, PenitipanController
+    MerchandiseController, RincianPenjualanController,  JabatanController, PenitipanController,
+    Laporan
 };
 
 // ======================= AUTH =======================
@@ -192,4 +193,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --------- RATING ---------
     Route::put('/addRating/{barang}', [BarangController::class, 'addRatings']);
+
+    // --------- LAPORAN ---------
+    Route::get('/laporan/bulanan', [Laporan::class, 'LaporanBulanan']);
 });
