@@ -17,6 +17,7 @@ class PenukaranReward extends Model
         'tanggal_penukaran',
         'id_pembeli',
         'id_merchandise',
+        'tanggal_pengambilan'
     ];
     public $timestamps = false;
 

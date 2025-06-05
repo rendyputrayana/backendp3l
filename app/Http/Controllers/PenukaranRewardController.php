@@ -14,7 +14,10 @@ class PenukaranRewardController extends Controller
      */
     public function index()
     {
-        $penukaranRewards = PenukaranReward::all();
+        $penukaranRewards = PenukaranReward::with(['pembeli', 'merchandise'])
+            ->orderBy('tanggal_penukaran', 'desc')
+            ->get();
+            
         return response()->json([
             'status' => 'success',
             'data' => $penukaranRewards,
