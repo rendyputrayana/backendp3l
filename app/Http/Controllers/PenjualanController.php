@@ -16,6 +16,7 @@ use App\Models\Jabatan;
 use App\Models\Penitipan;
 use App\Models\Penitip;
 use App\Models\FotoBarang;
+use App\Models\Hunter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -64,7 +65,7 @@ class PenjualanController extends Controller
                              ->whereIn('id_keranjang', $request->keranjang_ids)
                              ->get();
      
-             $diskon = $request->poin ? ($request->poin * 1000) : 0;
+             $diskon = $request->poin ? ($request->poin * 100) : 0;
 
              foreach ($keranjangs as $item) {
                 if ($item->barang) {
@@ -222,6 +223,12 @@ class PenjualanController extends Controller
             }
         }
 
+        $id_alamat = $penjualan->id_alamat;
+        $id_pembeli = Alamat::where('id_alamat', $id_alamat)->value('id_pembeli');
+        $pembeli = Pembeli::findOrFail($id_pembeli);
+        $pembeli->poin_reward += $penjualan->poin;
+        $pembeli->save();
+
         $penjualan->status_penjualan = 'batal';
         $penjualan->status_pengiriman = 'batal';
         $penjualan->metode_pengiriman = 'batal';
@@ -293,20 +300,26 @@ class PenjualanController extends Controller
 
         Log::info('Jam Hari Ini: ' . $jamHariIni);
 
-        if($jamHariIni > '16:00:00') {
+        
+        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
+        ->findOrFail($request->nota_penjualan);
+        Log::info('Penjualan cek: ' .Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s') > '16:00:00');
+        Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
+
+        
+        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+
+        if ($jamLunas > '16:00:00') {
             return response()->json([
-                'message' => 'Pengiriman hanya dapat dilakukan antara jam 08:00 hingga 17:00.',
+                'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
         }
-
-        $penjualan = Penjualan::with('alamat', 'rincianPenjualans.barang.penitipan')
-                    ->findOrFail($request->nota_penjualan);
 
         $penjualan->jadwal_pengiriman = $request->jadwal_pengiriman;
         $penjualan->status_pengiriman = 'dikirim';
         $penjualan->id_pegawai = $request->id_pegawai;
         $penjualan->save();
-
+        
         $kurir = Pegawai::findOrFail($request->id_pegawai);
         if($kurir){
             $pengguna_kurir = Pengguna::where('id_pegawai', $kurir->id_pegawai)->first();
@@ -578,6 +591,13 @@ class PenjualanController extends Controller
             $barang = Barang::where('kode_produk', $item->kode_produk)->first();
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 $penitip = Penitip::find($penitipan->id_penitip);
                 if (now()->diffInDays($penitipan->tanggal_penitipan) < 7) {
                     $bonus = $barang->komisi_reuseMart * 0.1;
@@ -684,6 +704,13 @@ class PenjualanController extends Controller
             Log::info('Barang: ' . $barang);
             if ($barang) {
                 $penitipan = Penitipan::where('nota_penitipan', $barang->nota_penitipan)->first();
+                $id_hunter = $penitipan->id_hunter;
+                if($id_hunter)
+                {
+                    $hunter = Hunter::find($id_hunter);
+                    $hunter->saldo += $barang->komisi_hunter;
+                    $hunter->save();
+                }
                 Log::info('Penitipan: ' . $penitipan);
                 $penitip = Penitip::find($penitipan->id_penitip);
                 Log::info('Penitip: ' . $penitip);
@@ -830,6 +857,30 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getHistoryPengirimanByIdKurir($id_kurir)
+    {
+        $penjualans = Penjualan::with([
+                'alamat.pembeli'         
+            ])
+            ->where('id_pegawai', $id_kurir)
+            ->orderBy('tanggal_transaksi', 'desc')
+            ->get();
+
+        if ($penjualans->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada riwayat pengiriman untuk kurir ini.',
+                'data' => [],
+                'status' => false
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data riwayat pengiriman berhasil diambil.',
+            'data' => $penjualans,
+            'status' => true
+        ]);
+    }
+
     public function getPenjualanById ($nota_penjualan)
     {
         $penjualan = Penjualan::with([
@@ -853,8 +904,59 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function getAllPenjualan ()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_penjualan', 'lunas')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        return response()->json([
+            'message' => 'Data penjualan berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
 
+    public function getAllPenjualanBelumDiambil()
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang',
+            'alamat.pembeli.pengguna',
+        ])
+        ->where('status_pengiriman', 'belum_diambil')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
 
+        return response()->json([
+            'message' => 'Data penjualan belum diambil berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
+
+    public function getHistoryHunterByIdHunter($id_hunter)
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang.penitipan.hunter',
+        ])
+        ->whereHas('rincianPenjualans.barang.penitipan.hunter', function($query) use ($id_hunter) {
+            $query->where('id_hunter', $id_hunter);
+        })
+        ->where('status_pengiriman', 'diterima')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data penjualan untuk hunter ini.',
+                'data' => [],
+            ], 200);
+        }
+        return response()->json([
+            'message' => 'Data penjualan hunter berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
     
      /**
      * Display the specified resource.

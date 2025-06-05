@@ -58,8 +58,8 @@ class PushH1BarangHabis extends Command
             
             $responseFCM = FcmService::sendNotification(
                 $fcmToken,
-                'Masa penitipan akan habis dalam waktu 3 hari',
-                'Ada barang penitipan yang akan habis dalam waktu 3 hari, silahkan cek di aplikasi',
+                'Masa penitipan akan habis pada hari ini',
+                'Ada barang penitipan yang akan habis pada hari ini, silahkan cek di aplikasi',
             );
             Log::info('ID Penitip: ' . $id_penitip);
 

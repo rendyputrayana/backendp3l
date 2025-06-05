@@ -17,9 +17,9 @@ class PenukaranRewardFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_pembeli' => $this->faker->numberBetween(1, 50), // Random dari 1-50
-            'id_merchandise' => $this->faker->numberBetween(1, 10), // Random dari 1-10
-            'tanggal_penukaran' => $this->faker->dateTimeBetween('-1 year', 'now'), // Tanggal sebelum sekarang
+            'id_pembeli' => $this->faker->numberBetween(1, 50), 
+            'id_merchandise' => $this->faker->numberBetween(1, 10),
+            'tanggal_penukaran' => $this->faker->optional()->dateTimeBetween('-1 year', 'now'),
         ];
     }
 }
