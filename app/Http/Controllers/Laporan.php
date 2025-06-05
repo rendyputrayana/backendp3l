@@ -11,6 +11,7 @@ use App\Models\Organisasi;
 use App\Models\RequestDonasi;
 use App\Models\Subkategori;
 use App\Models\Kategori;
+use App\Models\Donasi;
 use Carbon\Carbon;
 
 
@@ -32,6 +33,25 @@ class Laporan extends Controller
         ];
 
         return response()->json($data);
+    }
+
+    public function LaporanDonasi($bulan)
+    {
+        $tahunIni = Carbon::now()->year;
+
+        $tanggalHariIni = Carbon::now()->toDateString();
+
+        $donasiBulanINi = Donasi::whereMonth('tanggal_donasi', $bulan)
+            ->whereYear('tanggal_donasi', $tahunIni)
+            ->with('barang.penitipan.penitip',
+                'organisasi')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'tanggal_hari_ini' => $tanggalHariIni,
+            'data' => $donasiBulanINi
+        ]);
     }
 
     public function LaporanBulanan()
