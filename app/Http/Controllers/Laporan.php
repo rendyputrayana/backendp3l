@@ -7,6 +7,8 @@ use App\Models\Barang;
 use App\Models\Alamat;
 use App\Models\Penjualan;
 use App\Models\RincianPenjualan;
+use App\Models\Organisasi;
+use App\Models\RequestDonasi;
 use App\Models\Subkategori;
 use App\Models\Kategori;
 use Carbon\Carbon;
@@ -14,6 +16,24 @@ use Carbon\Carbon;
 
 class Laporan extends Controller
 {
+    public function LaporanRequestDonasi()
+    {
+
+        $tanggalHariIni = Carbon::now()->toDateString();
+
+        $requestDonasi = RequestDonasi::where('terpenuhi', false)
+            ->with('organisasi')
+            ->get();
+
+        $data =[
+            'tanggal_hari_ini' => $tanggalHariIni,
+            'status' => 'success',
+            'data' => $requestDonasi
+        ];
+
+        return response()->json($data);
+    }
+
     public function LaporanBulanan()
     {
         $tahunIni = Carbon::now()->year;
