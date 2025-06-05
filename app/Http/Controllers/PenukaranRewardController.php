@@ -6,6 +6,7 @@ use App\Models\Merchandise;
 use App\Models\Pembeli;
 use App\Models\PenukaranReward;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class PenukaranRewardController extends Controller
 {
@@ -16,8 +17,8 @@ class PenukaranRewardController extends Controller
     {
         $penukaranRewards = PenukaranReward::with(['pembeli', 'merchandise'])
             ->orderBy('tanggal_penukaran', 'desc')
-            ->get();
-            
+            ->paginate(10);
+
         return response()->json([
             'status' => 'success',
             'data' => $penukaranRewards,
@@ -89,6 +90,43 @@ class PenukaranRewardController extends Controller
             ], 404);
         }
     }
+
+    public function updateTanggalPengambilan(Request $request, PenukaranReward $penukaranReward)
+    {
+        $request->validate([
+            'tanggal_pengambilan' => 'required|date_format:Y-m-d',
+        ], [
+            'tanggal_pengambilan.required' => 'Tanggal pengambilan wajib diisi.',
+            'tanggal_pengambilan.date_format' => 'Format tanggal pengambilan tidak valid. Gunakan format YYYY-MM-DD HH',
+        ]);
+
+        if ($penukaranReward->tanggal_pengambilan !== null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Merchandise ini sudah memiliki tanggal pengambilan.'
+            ], 409);
+        }
+
+        $tanggalPenukaran = Carbon::parse($penukaranReward->tanggal_penukaran);
+        $tanggalPengambilanBaru = Carbon::parse($request->tanggal_pengambilan);
+
+        if ($tanggalPengambilanBaru->lt($tanggalPenukaran)) { 
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tanggal pengambilan tidak boleh lebih awal dari tanggal penukaran (' . $tanggalPenukaran->format('Y-m-d H:i:s') . ').'
+            ], 422); 
+        }
+
+        $penukaranReward->tanggal_pengambilan = $request->tanggal_pengambilan;
+        $penukaranReward->save();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $penukaranReward->load(['pembeli', 'merchandise']),
+            'message' => 'Tanggal pengambilan merchandise berhasil diisi.'
+        ], 200);
+    }
+
 
     /**
      * Show the form for editing the specified resource.

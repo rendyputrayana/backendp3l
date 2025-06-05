@@ -123,6 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/penukaran', [PenukaranRewardController::class, 'index']);
     Route::get('/penukaran/{penukaranReward}', [PenukaranRewardController::class, 'show']);
     Route::post('/penukaran', [PenukaranRewardController::class, 'store']);
+    Route::put('/penukaran/{penukaranReward}', [PenukaranRewardController::class, 'updateTanggalPengambilan']);
 
     // --------- REQUEST DONASI ---------
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
