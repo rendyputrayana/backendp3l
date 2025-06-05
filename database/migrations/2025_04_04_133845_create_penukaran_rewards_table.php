@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('penukaran_rewards', function (Blueprint $table) {
             $table->id('id_penukaran');
             $table->date('tanggal_penukaran')->nullable();
+            $table->date('tanggal_pengambilan')->nullable();
             $table->unsignedBigInteger('id_pembeli');
             $table->unsignedBigInteger('id_merchandise');
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
