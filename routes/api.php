@@ -149,7 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
     Route::put('/barang/{barang}', [BarangController::class, 'update']);
-
+    Route::get('/penitipanSudahHabis', [BarangController::class, 'getPenitipanSudahHabis']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
@@ -184,6 +184,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
     Route::get('/allBarangBelumDiambil', [RincianPenjualanController::class, 'getAllBarangBelumDiambil']);
+    Route::get('/allBarangPenjualan', [RincianPenjualanController::class, 'getAllBarangPenjualan']);
 
 
     // --------- DISKUSI PRODUK ---------
