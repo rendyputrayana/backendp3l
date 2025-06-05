@@ -3,7 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\RincianPenjualan;
+use App\Models\Barang;
+use App\Models\Penjualan;
+use App\Models\SubKategori;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
+
 
 class RincianPenjualanController extends Controller
 {
@@ -40,6 +45,21 @@ class RincianPenjualanController extends Controller
 
         return response()->json([
             'message' => 'Data barang belum diambil berhasil diambil.',
+            'data' => $rincian
+        ]);
+    }
+
+    public function getAllBarangPenjualan()
+    {
+        $rincian = RincianPenjualan::with([
+            'barang.subkategori.kategori',
+            'penjualan'
+        ])
+        ->orderByDesc('id_rincian_penjualan')
+        ->get();
+
+        return response()->json([
+            'message' => 'Data barang penjualan berhasil diambil.',
             'data' => $rincian
         ]);
     }

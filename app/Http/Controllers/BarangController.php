@@ -14,6 +14,7 @@ use App\Models\Penjualan;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class BarangController extends Controller
 {
@@ -644,6 +645,27 @@ class BarangController extends Controller
             'status' => true,
             'data' => $barang,
             'message' => 'Barang berhasil diperbarui'
+        ]);
+    }
+
+    public function getPenitipanSudahHabis()
+    {
+        $targetTanggal = Carbon::today()->subDays(7);
+
+        $barangs = Barang::with('penitipan.penitip')
+            ->where('status_barang', 'barang_untuk_donasi')
+            ->whereDate('masa_penitipan', '<', $targetTanggal)
+            ->get();
+        if ($barangs->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tidak ada barang penitipan yang sudah habis masa penitipannya.'
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'data' => $barangs,
+            'message' => 'Daftar barang penitipan yang sudah habis masa penitipannya.'
         ]);
     }
 }
