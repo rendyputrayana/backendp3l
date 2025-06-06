@@ -274,35 +274,50 @@ class Laporan extends Controller
             $firstItem = $items->first();
             $barang = $firstItem->barang;
 
-            if (!$barang || !$barang->penitipan || !$barang->penitipan->tanggal_penitipan || !$firstItem->penjualan->tanggal_lunas) {
-                 return null; 
+            // Pastikan data relasi ada sebelum melanjutkan
+            if (!$barang || !$barang->penitipan || !$barang->penitipan->tanggal_penitipan || !$firstItem->penjualan || !$firstItem->penjualan->tanggal_lunas) {
+                 return null; // Lewati item dengan data yang tidak lengkap
             }
 
             $tanggalMasuk = Carbon::parse($barang->penitipan->tanggal_penitipan);
             $tanggalLaku = Carbon::parse($firstItem->penjualan->tanggal_lunas);
             $diffInDays = $tanggalMasuk->diffInDays($tanggalLaku);
 
+            // Inisialisasi nilai komisi berdasarkan data di database
+            // Asumsi: komisi_hunter dan komisi_reuseMart adalah nilai nominal langsung dari DB
             $komisiHunter = (float) $barang->komisi_hunter;
-            $komisiReuseMartBase = (float) $barang->harga_barang * ((float) $barang->komisi_reuseMart / 100);
+            $komisiReuseMartDasar = (float) $barang->komisi_reuseMart; // Nilai nominal dasar dari DB
+
             $bonusPenitip = 0.0;
+            $komisiReuseMartAktual = $komisiReuseMartDasar; // Default: ambil langsung dari DB
 
-            // Logika bonus penitip
-            // "Kompor laku < 7 hari, sehingga penitip mendapat bonus. Komisi ReuseMart: 20% = 400.000. Bonus untuk penitip: 10% dari 400.000 = 40.000"
-            // Ini berarti bonus penitip adalah 10% dari komisi ReuseMart yang seharusnya didapat (komisi_reuseMart dari barang)
-            if ($diffInDays < 7 && $barang->perpanjang == 0) {
-                $bonusPenitip = 0.10 * $komisiReuseMartBase;
-            }
+            // --- Logika Perhitungan Komisi ---
 
-            // Logika perpanjangan
-            // "Rak buku > 1 bulan, sehingga barang ini sudah ada perpanjangan penitipan. Sehingga, komisi 30%, komisi hunter 0 berarti barang ini bukan barang hasil hunting."
-            // Jika ada perpanjangan, komisi ReuseMart menjadi 30% dari harga jual, dan komisi hunter 0
+            // 1. Logika Perpanjangan: Jika ada perpanjangan
+            // Prioritas tertinggi, karena aturan ini akan mengubah kedua komisi.
             if ($barang->perpanjang == 1) {
-                $komisiReuseMartBase = (float) $barang->harga_barang * 0.30;
-                $komisiHunter = 0.0;
+                // Komisi ReuseMart menjadi 30% dari harga jual (override semua)
+                $komisiReuseMartAktual = (float) $barang->harga_barang * 0.30;
+                $komisiHunter = 0.0; // Komisi Hunter 0 jika ada perpanjangan
+                // Bonus penitip tidak berlaku jika sudah perpanjangan
+            }
+            // 2. Logika Bonus Penitip (jika TIDAK ada perpanjangan DAN laku < 7 hari)
+            // Ini akan berlaku jika perpanjangan TIDAK "Ya" dan laku cepat
+            elseif ($diffInDays < 7 && $barang->perpanjang == 0) {
+                // Bonus penitip 10% dari komisi ReuseMart dasar (nominal dari DB)
+                $bonusPenitip = 0.10 * $komisiReuseMartDasar;
+                // Komisi ReuseMart Aktual adalah komisi dasar dikurangi bonus penitip saja
+                $komisiReuseMartAktual = $komisiReuseMartDasar - $bonusPenitip;
+                // Komisi Hunter tetap diambil dari DB (tidak mengurangi ReuseMart, tapi mungkin sudah 0 jika perpanjangan)
+            }
+            // 3. Logika Komisi Normal (jika TIDAK ada perpanjangan DAN laku >= 7 hari)
+            // Ini adalah kasus default jika tidak masuk ke kondisi di atas
+            else {
+                // Komisi ReuseMart aktual diambil langsung dari DB ($komisiReuseMartDasar)
+                // Komisi Hunter juga diambil langsung dari DB (tidak ada pengurangan)
+                // Bonus penitip tetap 0
             }
 
-            // Komisi ReuseMart aktual adalah komisi dasar dikurangi komisi hunter dan bonus penitip
-            $komisiReuseMartAktual = $komisiReuseMartBase - $komisiHunter - $bonusPenitip;
 
             return [
                 'kode_produk' => $barang->kode_produk,
@@ -315,8 +330,9 @@ class Laporan extends Controller
                 'bonus_penitip' => $bonusPenitip,
                 'perpanjangan' => $barang->perpanjang == 1 ? 'Ya' : 'Tidak',
             ];
-        })->filter()->values()->all(); 
+        })->filter()->values()->all(); // filter() untuk menghapus entri null jika ada data yang tidak lengkap
 
+        // Calculate totals
         $totalKomisiHunter = array_sum(array_column($laporanData, 'komisi_hunter'));
         $totalKomisiReuseMart = array_sum(array_column($laporanData, 'komisi_reuse_mart'));
         $totalBonusPenitip = array_sum(array_column($laporanData, 'bonus_penitip'));
@@ -328,9 +344,12 @@ class Laporan extends Controller
                 'tahun' => $year,
                 'tanggal_cetak' => Carbon::now()->translatedFormat('d F Y'),
                 'keterangan_komisi' => [
-                    'Produk laku < 7 hari: Penitip mendapat bonus 10% dari komisi ReuseMart dasar.',
-                    'Produk dengan perpanjangan penitipan: Komisi ReuseMart 30%, Komisi Hunter 0%.',
-                    'Komisi Hunter 0 berarti barang ini bukan barang hasil hunting.'
+                    'Komisi Hunter: Nilai nominal terinput. Jika ada perpanjangan penitipan, menjadi 0%.',
+                    'Komisi ReuseMart Aktual:',
+                    '  - Jika ada perpanjangan: 30% dari Harga Jual.',
+                    '  - Jika laku < 7 hari (tanpa perpanjangan): Nilai nominal dari DB dikurangi Bonus Penitip.',
+                    '  - Kondisi lain (normal): Nilai nominal diambil langsung dari DB.',
+                    'Bonus Penitip: 10% dari Komisi ReuseMart dasar (nilai nominal dari DB), berlaku jika produk laku < 7 hari dan tidak ada perpanjangan.'
                 ]
             ],
             'data' => $laporanData,
