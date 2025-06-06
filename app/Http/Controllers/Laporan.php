@@ -216,4 +216,130 @@ class Laporan extends Controller
             ]
         ]);
     }
+
+    public function laporanStokGudang()
+    {
+        $barangs = Barang::with(['penitipan.penitip', 'penitipan.hunter'])
+        ->whereIn('status_barang', ['tersedia', 'barang_untuk_donasi'])
+        ->get()
+        ->map(function ($barang) {
+            return [
+                'kode_produk' => $barang->kode_produk,
+                'nama_produk' => $barang->nama_barang,
+                'id_penitip' => $barang->penitipan->id_penitip ?? null,
+                'nama_penitip' => $barang->penitipan->penitip->nama_penitip ?? null,
+                'tanggal_masuk' => $barang->penitipan->tanggal_penitipan ?? null,
+                'perpanjangan' => $barang->perpanjang == 1 ? 'Ya' : 'Tidak',
+                'id_hunter' => $barang->penitipan->id_hunter ?? null,
+                'nama_hunter' => $barang->penitipan->hunter->nama_hunter ?? null,
+                'harga' => $barang->harga_barang,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'tanggal_cetak' => Carbon::now()->format('Y-m-d'),
+            'data' => $barangs
+        ]);
+    }
+
+    public function laporanKomisiBulananPerProduk(Request $request)
+    {
+        $month = $request->input('month', Carbon::now()->month);
+        $year = $request->input('year', Carbon::now()->year);
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth = Carbon::create($year, $month, 1)->endOfMonth()->endOfDay();
+
+        $rincianPenjualans = RincianPenjualan::with([
+            'barang' => function ($query) {
+                $query->select(
+                    'kode_produk', 'nama_barang', 'harga_barang',
+                    'komisi_penitip', 'komisi_hunter', 'komisi_reuseMart', 'perpanjang', 'nota_penitipan'
+                );
+            },
+            'barang.penitipan' => function ($query) {
+                $query->select('nota_penitipan', 'tanggal_penitipan');
+            },
+            'penjualan' => function ($query) {
+                $query->select('nota_penjualan', 'tanggal_lunas');
+            }
+        ])
+        ->whereHas('penjualan', function ($query) use ($startOfMonth, $endOfMonth) {
+            $query->whereBetween('tanggal_lunas', [$startOfMonth, $endOfMonth]);
+        })
+        ->get();
+
+        $laporanData = $rincianPenjualans->groupBy('kode_produk')->map(function ($items, $kode_produk) {
+            $firstItem = $items->first();
+            $barang = $firstItem->barang;
+
+            if (!$barang || !$barang->penitipan || !$barang->penitipan->tanggal_penitipan || !$firstItem->penjualan->tanggal_lunas) {
+                 return null; 
+            }
+
+            $tanggalMasuk = Carbon::parse($barang->penitipan->tanggal_penitipan);
+            $tanggalLaku = Carbon::parse($firstItem->penjualan->tanggal_lunas);
+            $diffInDays = $tanggalMasuk->diffInDays($tanggalLaku);
+
+            $komisiHunter = (float) $barang->komisi_hunter;
+            $komisiReuseMartBase = (float) $barang->harga_barang * ((float) $barang->komisi_reuseMart / 100);
+            $bonusPenitip = 0.0;
+
+            // Logika bonus penitip
+            // "Kompor laku < 7 hari, sehingga penitip mendapat bonus. Komisi ReuseMart: 20% = 400.000. Bonus untuk penitip: 10% dari 400.000 = 40.000"
+            // Ini berarti bonus penitip adalah 10% dari komisi ReuseMart yang seharusnya didapat (komisi_reuseMart dari barang)
+            if ($diffInDays < 7 && $barang->perpanjang == 0) {
+                $bonusPenitip = 0.10 * $komisiReuseMartBase;
+            }
+
+            // Logika perpanjangan
+            // "Rak buku > 1 bulan, sehingga barang ini sudah ada perpanjangan penitipan. Sehingga, komisi 30%, komisi hunter 0 berarti barang ini bukan barang hasil hunting."
+            // Jika ada perpanjangan, komisi ReuseMart menjadi 30% dari harga jual, dan komisi hunter 0
+            if ($barang->perpanjang == 1) {
+                $komisiReuseMartBase = (float) $barang->harga_barang * 0.30;
+                $komisiHunter = 0.0;
+            }
+
+            // Komisi ReuseMart aktual adalah komisi dasar dikurangi komisi hunter dan bonus penitip
+            $komisiReuseMartAktual = $komisiReuseMartBase - $komisiHunter - $bonusPenitip;
+
+            return [
+                'kode_produk' => $barang->kode_produk,
+                'nama_produk' => $barang->nama_barang,
+                'harga_jual' => (float) $barang->harga_barang,
+                'tanggal_masuk' => $tanggalMasuk->format('d/n/Y'),
+                'tanggal_laku' => $tanggalLaku->format('d/n/Y'),
+                'komisi_hunter' => $komisiHunter,
+                'komisi_reuse_mart' => $komisiReuseMartAktual,
+                'bonus_penitip' => $bonusPenitip,
+                'perpanjangan' => $barang->perpanjang == 1 ? 'Ya' : 'Tidak',
+            ];
+        })->filter()->values()->all(); 
+
+        $totalKomisiHunter = array_sum(array_column($laporanData, 'komisi_hunter'));
+        $totalKomisiReuseMart = array_sum(array_column($laporanData, 'komisi_reuse_mart'));
+        $totalBonusPenitip = array_sum(array_column($laporanData, 'bonus_penitip'));
+        $totalHargaJual = array_sum(array_column($laporanData, 'harga_jual'));
+
+        return response()->json([
+            'meta' => [
+                'bulan' => Carbon::create(null, $month)->translatedFormat('F'),
+                'tahun' => $year,
+                'tanggal_cetak' => Carbon::now()->translatedFormat('d F Y'),
+                'keterangan_komisi' => [
+                    'Produk laku < 7 hari: Penitip mendapat bonus 10% dari komisi ReuseMart dasar.',
+                    'Produk dengan perpanjangan penitipan: Komisi ReuseMart 30%, Komisi Hunter 0%.',
+                    'Komisi Hunter 0 berarti barang ini bukan barang hasil hunting.'
+                ]
+            ],
+            'data' => $laporanData,
+            'totals' => [
+                'total_harga_jual' => $totalHargaJual,
+                'total_komisi_hunter' => $totalKomisiHunter,
+                'total_komisi_reuse_mart' => $totalKomisiReuseMart,
+                'total_bonus_penitip' => $totalBonusPenitip,
+            ]
+        ]);
+    }
 }

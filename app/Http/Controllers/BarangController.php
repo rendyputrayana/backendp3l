@@ -646,4 +646,5 @@ class BarangController extends Controller
             'message' => 'Barang berhasil diperbarui'
         ]);
     }
+
 }

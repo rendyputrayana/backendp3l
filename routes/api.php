@@ -198,4 +198,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- LAPORAN ---------
     Route::get('/laporan/bulanan', [Laporan::class, 'LaporanBulanan']);
     Route::get('/laporan/requestDonasi', [Laporan::class, 'LaporanRequestDonasi']);
+    Route::get('/laporan/stokGudang', [Laporan::class, 'laporanStokGudang']);
+    Route::get('/laporan/komisiBulananPerProduk', [Laporan::class, 'laporanKomisiBulananPerProduk']);
 });
