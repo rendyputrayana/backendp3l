@@ -21,6 +21,14 @@ use Illuminate\Support\Facades\Schedule;
 //     Artisan::call('penjualan:h1-barang-habis');
 // })->everyTenSeconds();
 
+// Schedule::call(function () {
+//     Artisan::call('transaksi:hangus-2-hari');
+// })->everyMinute();
+
+// Schedule::call(function () {
+//     Artisan::call('penjualan:cek-barang-7-hari');
+// })->everyMinute();
+
 Schedule::call(function () {
-    Artisan::call('transaksi:hangus-2-hari');
-})->everyMinute();
+    Artisan::call('penjualan:top-seller');
+})->everyFifteenSeconds();
