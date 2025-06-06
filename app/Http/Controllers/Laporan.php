@@ -12,6 +12,7 @@ use App\Models\RequestDonasi;
 use App\Models\Subkategori;
 use App\Models\Kategori;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 
 class Laporan extends Controller
@@ -243,13 +244,17 @@ class Laporan extends Controller
         ]);
     }
 
-    public function laporanKomisiBulananPerProduk(Request $request)
+    public function laporanKomisiBulanan(Request $request)
     {
         $month = $request->input('month', Carbon::now()->month);
         $year = $request->input('year', Carbon::now()->year);
 
+         Log::info("API laporanKomisiBulanan dipanggil. Bulan: {$month}, Tahun: {$year}");
+
         $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
         $endOfMonth = Carbon::create($year, $month, 1)->endOfMonth()->endOfDay();
+
+        Log::info("Rentang tanggal: {$startOfMonth->toDateString()} s/d {$endOfMonth->toDateString()}");
 
         $rincianPenjualans = RincianPenjualan::with([
             'barang' => function ($query) {
