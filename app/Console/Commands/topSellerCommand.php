@@ -51,7 +51,12 @@ class topSellerCommand extends Command
             Log::info('Tidak ada data komisi penitip bulan ini.');
         }
 
-        $badge = Badge::firstOrNew(['nama_badge' => 'Top Seller Bulan' . Carbon::now()->format('M'), 'logo_badge' => 'top_seller.png', 'id_penitip' => $komisiTerbanyak->id_penitip ?? null]);
+        $bulanIndo = Carbon::now()->locale('id')->translatedFormat('F');
+        $badge = Badge::firstOrNew([
+            'nama_badge' => 'Top Seller Bulan ' . $bulanIndo,
+            'logo_badge' => 'top_seller.png',
+            'id_penitip' => $komisiTerbanyak->id_penitip ?? null
+        ]);
         $badge->save();
 
         
