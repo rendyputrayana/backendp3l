@@ -15,6 +15,7 @@ class Badge extends Model
         'logo_badge',
         'id_penitip',
     ];
+
     public $timestamps = false;
 
     public function penitip()

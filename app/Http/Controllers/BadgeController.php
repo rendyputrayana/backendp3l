@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Badge;
 use Illuminate\Http\Request;
+use App\Models\Penitip;
+use App\Models\AkumulasiRating;
 
 class BadgeController extends Controller
 {
@@ -20,12 +22,32 @@ class BadgeController extends Controller
         ], 200);
     }
 
+    public function TopSeller()
+    {
+        $badges = Badge::with('penitip.akumulasi')->orderBy('id_badge', 'desc')->first();
+
+        if ($badges) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Top Seller Badge',
+                'data' => $badges
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tidak ada Top Seller ditemukan.',
+                'data' => null
+            ], 404);
+        }
+    }
+
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
+        
     }
 
     /**

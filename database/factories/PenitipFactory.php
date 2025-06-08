@@ -53,6 +53,7 @@ class PenitipFactory extends Factory
                                 ', Yogyakarta, Indonesia',
             'foto_ktp' => $this->faker->imageUrl(640, 480, 'people', true, 'KTP'),
             'saldo' => $this->faker->numberBetween(10000, 10000000),
+            'poin' => $this->faker->numberBetween(0, 5000),
         ];
     }
 }

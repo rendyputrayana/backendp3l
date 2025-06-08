@@ -8,7 +8,7 @@ use App\Http\Controllers\{
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
     MerchandiseController, RincianPenjualanController,  JabatanController, PenitipanController,
-    Laporan
+    Laporan, BadgeController
 };
 
 // ======================= AUTH =======================
@@ -53,6 +53,8 @@ Route::get('/diskusiProduk', [DiskusiProdukController::class, 'index']);
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
+// ======================= Badges =======================
+Route::get('/badges/top-seller', [BadgeController::class, 'TopSeller']);
 
 
 // ======================= AUTHENTICATED ROUTES =======================
