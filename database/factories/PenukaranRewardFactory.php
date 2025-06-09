@@ -20,6 +20,7 @@ class PenukaranRewardFactory extends Factory
         return [
             'id_pembeli' => $this->faker->numberBetween(1, 50), 
             'id_merchandise' => $this->faker->numberBetween(1, 10),
+
             'tanggal_penukaran' => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d H:i:s'),
             'tanggal_pengambilan' => $this->faker->optional()->dateTimeBetween('now', '+1 month')?->format('Y-m-d H:i:s'),    
         ];

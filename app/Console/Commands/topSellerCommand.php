@@ -35,11 +35,13 @@ class topSellerCommand extends Command
     public function handle()
     {
         $bulanLalu = Carbon::now()->subMonth()->format('Y-m');
+
         $komisiTerbanyak = DB::table('penjualans as p')
             ->join('rincian_penjualans as r', 'r.nota_penjualan', '=', 'p.nota_penjualan')
             ->join('barangs as b', 'b.kode_produk', '=', 'r.kode_produk')
             ->join('penitipans as pt', 'pt.nota_penitipan', '=', 'b.nota_penitipan')
             ->where('p.tanggal_lunas', 'like', $bulanLalu . '%')
+
             ->select('pt.id_penitip', DB::raw('SUM(b.komisi_penitip) as total_komisi'))
             ->groupBy('pt.id_penitip')
             ->orderByDesc('total_komisi')
@@ -47,7 +49,6 @@ class topSellerCommand extends Command
 
         if ($komisiTerbanyak) {
             Log::info('ID Penitip dengan komisi tertinggi bulan ini: ' . $komisiTerbanyak->id_penitip);
-        
 
             $bulanIndo = Carbon::now()->subMonth()->locale('id')->translatedFormat('F');
             $badge = Badge::firstOrNew([

@@ -154,7 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/barangDiambil', [BarangController::class, 'getBarangDiambil']);
     Route::put('/barangDiambil/{barang}', [BarangController::class, 'updateStatusBarangDiambil']);
     Route::put('/barang/{barang}', [BarangController::class, 'update']);
-
+    Route::get('/penitipanSudahHabis', [BarangController::class, 'getPenitipanSudahHabis']);
 
     // --------- KERANJANG ---------
     Route::get('/detail-keranjang/{id_pembeli}', [DetailKeranjangController::class, 'showByIdPembeli']);
@@ -189,6 +189,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
     Route::get('/allBarangBelumDiambil', [RincianPenjualanController::class, 'getAllBarangBelumDiambil']);
+    Route::get('/allBarangPenjualan', [RincianPenjualanController::class, 'getAllBarangPenjualan']);
 
 
     // --------- DISKUSI PRODUK ---------
@@ -201,6 +202,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- LAPORAN ---------
     Route::get('/laporan/bulanan', [Laporan::class, 'LaporanBulanan']);
     Route::get('/laporan/requestDonasi', [Laporan::class, 'LaporanRequestDonasi']);
+
     Route::get('/laporan/stokGudang', [Laporan::class, 'laporanStokGudang']);
     Route::get('/laporan/komisiBulanan', [Laporan::class, 'laporanKomisiBulanan']);
+
+    Route::get('/laporan/donasi/{bulan}', [Laporan::class, 'LaporanDonasi']);
+    Route::get('/laporan/penitip/{id_penitip}', [Laporan::class, 'LaporanPenitip']);
+
 });

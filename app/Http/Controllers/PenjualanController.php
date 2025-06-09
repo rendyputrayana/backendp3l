@@ -307,9 +307,9 @@ class PenjualanController extends Controller
         Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
 
         
-        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+        $jamPengiriman = Carbon::parse($request->jadwal_pengiriman)->format('H:i:s');
 
-        if ($jamLunas > '16:00:00') {
+        if ($jamPengiriman > '16:00:00') {
             return response()->json([
                 'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
@@ -467,8 +467,6 @@ class PenjualanController extends Controller
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
         $penjualan->id_pegawai = $request->id_pegawai;
-        $penjualan->status_pengiriman = 'diterima';
-        $penjualan->tanggal_diterima = now();
         $penjualan->save();
 
         $alamat = $penjualan->alamat;
@@ -691,9 +689,8 @@ class PenjualanController extends Controller
         }
 
         $penjualan = Penjualan::findOrFail($request->nota_penjualan);
-        $penjualan->status_pengiriman = 'dikirim';
-        //$penjualan->tanggal_diterima = now();
-        $penjualan->id_pegawai = $request->id_pegawai;
+        $penjualan->status_pengiriman = 'diterima';
+        $penjualan->tanggal_diterima = now();
         $penjualan->save();
 
         $rincian = RincianPenjualan::where('nota_penjualan', $penjualan->nota_penjualan)->get();
@@ -721,8 +718,8 @@ class PenjualanController extends Controller
                 {
                     FcmService::sendNotification(
                         $fcmToken,
-                        'Barang Anda telah dikirim',
-                        'Barang penitipan Anda telah dikirim oleh kurir, silahkan cek di aplikasi'
+                        'Barang Anda telah diterima',
+                        'Terima kasih telah menggunakan ReuseMart'
                     );
                 }
             }
@@ -747,8 +744,8 @@ class PenjualanController extends Controller
         {
             FcmService::sendNotification(
                 $fcmToken,
-                'Barang Anda telah dikirim',
-                'Barang anda telah dikirim oleh kurir, terima kasih telah berbelanja di ReuseMart'
+                'Barang Anda telah diterima',
+                'Terima kasih telah berbelanja di ReuseMart. Barang Anda telah diterima.',
             );
         }
         $pembeli->save();
@@ -837,7 +834,7 @@ class PenjualanController extends Controller
                 'alamat.pembeli'         
             ])
             ->where('id_pegawai', $id_kurir)
-            ->where('status_pengiriman', 'dikirim')
+            ->where('status_pengiriman', '!=', 'diterima')
             ->where('jadwal_pengiriman', '=', $hariIni)
             ->orderBy('tanggal_transaksi', 'desc')
             ->get();

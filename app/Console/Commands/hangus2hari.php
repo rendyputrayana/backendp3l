@@ -42,7 +42,7 @@ class hangus2hari extends Command
 
         foreach ($penjualans as $penjualan)
         {
-            if($penjualan->tanggal_lunas <= $hariini->subDays(2))
+            if($penjualan->jadwal_pengiriman <= $hariini->subDays(2))
             {
                 Log::info('Penjualan yang sudah lebih dari 2 hari: ' . $penjualan->nota_penjualan);
 

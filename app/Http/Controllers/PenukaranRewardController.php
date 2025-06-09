@@ -61,6 +61,10 @@ class PenukaranRewardController extends Controller
             ]);
 
             $pembeli->decrement('poin_reward', $merch->poin);
+            $pembeli->save();
+
+            $merch->decrement('stok', 1);
+            $merch->save();
 
             return response()->json([
                 'status' => true,

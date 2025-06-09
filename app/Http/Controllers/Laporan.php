@@ -11,6 +11,9 @@ use App\Models\Organisasi;
 use App\Models\RequestDonasi;
 use App\Models\Subkategori;
 use App\Models\Kategori;
+use App\Models\Donasi;
+use App\Models\Penitip;
+use App\Models\Penitipan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -26,6 +29,10 @@ class Laporan extends Controller
             ->with('organisasi')
             ->get();
 
+        $requestDonasi = $requestDonasi->sortBy(function($item) {
+            return $item->organisasi->id_organisasi ?? 0;
+        })->values();
+
         $data =[
             'tanggal_hari_ini' => $tanggalHariIni,
             'status' => 'success',
@@ -33,6 +40,53 @@ class Laporan extends Controller
         ];
 
         return response()->json($data);
+    }
+
+    public function LaporanPenitip($id_penitip)
+    {
+        $penitip = Penitip::find($id_penitip);
+
+        $tanggalHariIni = Carbon::now()->toDateString();
+
+        $rincian = RincianPenjualan::with('barang.penitipan','penjualan')
+            ->whereHas('barang.penitipan', function($query) use ($id_penitip) {
+                $query->where('id_penitip', $id_penitip);
+            })
+            ->get();
+
+        $penitipans = Penitipan::where('id_penitip', $id_penitip)
+            ->with(['barangs' => function($query) {
+            $query->where('status_barang', 'terjual');
+            }, 'barangs.rincianPenjualans.penjualan'])
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'tanggal_hari_ini' => $tanggalHariIni,
+            'data' => [
+                'penitip' => $penitip,
+                'rincian_penjualan' => $rincian,
+            ]
+        ]);
+    }
+
+    public function LaporanDonasi($bulan)
+    {
+        $tahunIni = Carbon::now()->year;
+
+        $tanggalHariIni = Carbon::now()->toDateString();
+
+        $donasiBulanINi = Donasi::whereMonth('tanggal_donasi', $bulan)
+            ->whereYear('tanggal_donasi', $tahunIni)
+            ->with('barang.penitipan.penitip',
+                'organisasi')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'tanggal_hari_ini' => $tanggalHariIni,
+            'data' => $donasiBulanINi
+        ]);
     }
 
     public function LaporanBulanan()
