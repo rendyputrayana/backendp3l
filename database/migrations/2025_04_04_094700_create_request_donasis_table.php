@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('request_donasis', function (Blueprint $table) {
             $table->id('id_request');
             $table->string('detail_request');
+            $table->boolean('terpenuhi')->default(false);
             $table->unsignedBigInteger('id_organisasi');
             $table->foreign('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
         });
