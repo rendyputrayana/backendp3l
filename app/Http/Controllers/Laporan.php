@@ -28,6 +28,10 @@ class Laporan extends Controller
             ->with('organisasi')
             ->get();
 
+        $requestDonasi = $requestDonasi->sortBy(function($item) {
+            return $item->organisasi->id_organisasi ?? 0;
+        })->values();
+
         $data =[
             'tanggal_hari_ini' => $tanggalHariIni,
             'status' => 'success',
