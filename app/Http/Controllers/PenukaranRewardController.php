@@ -52,6 +52,8 @@ class PenukaranRewardController extends Controller
             $penukaran = PenukaranReward::create([
                 'id_pembeli' => $request->id_pembeli,
                 'id_merchandise' => $request->id_merchandise,
+                'tanggal_penukaran' => now(),
+                'tanggal_pengambilan' => null
             ]);
 
             $pembeli->decrement('poin_reward', $merch->poin);
