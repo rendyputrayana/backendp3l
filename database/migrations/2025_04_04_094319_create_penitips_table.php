@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('alamat_penitip');
             $table->string('foto_ktp');
             $table->bigInteger('saldo')->default(0);
+            $table->unsignedBigInteger('poin')->nullable();
         });
     }
 

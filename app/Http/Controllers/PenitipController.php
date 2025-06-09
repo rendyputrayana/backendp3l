@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Penitip;
 use Illuminate\Http\Request;
+use App\Models\Badge;
+use App\Models\AkumulasiRating;
 
 class PenitipController extends Controller
 {
@@ -41,7 +43,7 @@ class PenitipController extends Controller
      */
     public function show(Penitip $penitip)
     {
-        $penitip = Penitip::with('akumulasi')->find($penitip->id_penitip);
+        $penitip = Penitip::with('akumulasi', 'badges')->find($penitip->id_penitip);
         if ($penitip) {
             return response()->json([
                 'status' => true,

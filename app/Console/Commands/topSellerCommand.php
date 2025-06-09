@@ -34,12 +34,14 @@ class topSellerCommand extends Command
      */
     public function handle()
     {
-        $bulanIni = Carbon::now()->format('Y-m');
+        $bulanLalu = Carbon::now()->subMonth()->format('Y-m');
+
         $komisiTerbanyak = DB::table('penjualans as p')
             ->join('rincian_penjualans as r', 'r.nota_penjualan', '=', 'p.nota_penjualan')
             ->join('barangs as b', 'b.kode_produk', '=', 'r.kode_produk')
             ->join('penitipans as pt', 'pt.nota_penitipan', '=', 'b.nota_penitipan')
-            ->where('p.tanggal_lunas', 'like', $bulanIni . '%')
+            ->where('p.tanggal_lunas', 'like', $bulanLalu . '%')
+
             ->select('pt.id_penitip', DB::raw('SUM(b.komisi_penitip) as total_komisi'))
             ->groupBy('pt.id_penitip')
             ->orderByDesc('total_komisi')
@@ -47,27 +49,34 @@ class topSellerCommand extends Command
 
         if ($komisiTerbanyak) {
             Log::info('ID Penitip dengan komisi tertinggi bulan ini: ' . $komisiTerbanyak->id_penitip);
+
+            $bulanIndo = Carbon::now()->subMonth()->locale('id')->translatedFormat('F');
+            $badge = Badge::firstOrNew([
+                'nama_badge' => 'Top Seller Bulan ' . $bulanIndo,
+                'logo_badge' => 'top_seller.png',
+                'id_penitip' => $komisiTerbanyak->id_penitip ?? null
+            ]);
+            $badge->save();
+
+            // Hitung total bonus untuk penitip
+            $totalPenjualan = DB::table('penjualans as p')
+                ->join('rincian_penjualans as r', 'r.nota_penjualan', '=', 'p.nota_penjualan')
+                ->join('barangs as b', 'b.kode_produk', '=', 'r.kode_produk')
+                ->join('penitipans as pt', 'pt.nota_penitipan', '=', 'b.nota_penitipan')
+                ->where('p.tanggal_lunas', 'like', $bulanLalu . '%')
+                ->where('pt.id_penitip', $komisiTerbanyak->id_penitip)
+                ->select(DB::raw('SUM(b.harga_barang) as total_penjualan')) 
+                ->value('total_penjualan');
+
+            $bonusPoin = $totalPenjualan * 0.01;
+
+            DB::table('penitips')
+                ->where('id_penitip', $komisiTerbanyak->id_penitip)
+                ->increment('poin', $bonusPoin);
+
+            Log::info("Bonus poin {$bonusPoin} diberikan kepada penitip ID {$komisiTerbanyak->id_penitip}");
         } else {
             Log::info('Tidak ada data komisi penitip bulan ini.');
         }
-
-        $bulanIndo = Carbon::now()->locale('id')->translatedFormat('F');
-        $badge = Badge::firstOrNew([
-            'nama_badge' => 'Top Seller Bulan ' . $bulanIndo,
-            'logo_badge' => 'top_seller.png',
-            'id_penitip' => $komisiTerbanyak->id_penitip ?? null
-        ]);
-        $badge->save();
-
-        
-
-        // $topSellers = $penjualanBulanIni->groupBy('id_barang')->map(function ($group) {
-        //     return [
-        //         'total_penjualan' => $group->sum('jumlah'),
-        //         'barang' => $group->first()->barang,
-        //     ];
-        // })->sortByDesc('total_penjualan')->take(5);
-
-        // Log::info('Top seller bulan ini: ' . $topSellers);
     }
 }
