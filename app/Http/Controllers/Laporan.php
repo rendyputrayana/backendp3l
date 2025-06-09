@@ -403,4 +403,78 @@ class Laporan extends Controller
             ]
         ]);
     }
+
+    public function laporanPenjualanPerKategori(Request $request, $tahun)
+    {
+        $tanggalHariIni = Carbon::now()->toDateString();
+
+        $kategoriList = Kategori::all();
+        $hasilLaporan = [];
+
+        $totalTerjual = 0;
+        $totalGagal = 0;
+
+        foreach ($kategoriList as $kategori) {
+            $subkategoriIds = Subkategori::where('id_kategori', $kategori->id_kategori)->pluck('id_subkategori');
+
+            $penjualanSukses = Penjualan::where('status_penjualan', 'lunas')
+                ->whereYear('tanggal_transaksi', $tahun)
+                ->whereHas('rincianPenjualans.barang', function ($query) use ($subkategoriIds) {
+                    $query->whereIn('id_subkategori', $subkategoriIds);
+                })
+                ->with('rincianPenjualans.barang')
+                ->get();
+
+
+            $penjualanGagal = Penjualan::where('status_penjualan', 'batal')
+                ->whereYear('tanggal_transaksi', $tahun)
+                ->whereHas('rincianPenjualans.barang', function ($query) use ($subkategoriIds) {
+                    $query->whereIn('id_subkategori', $subkategoriIds);
+                })
+                ->with('rincianPenjualans.barang')
+                ->get();
+
+            $jumlahTerjual = 0;
+            foreach ($penjualanSukses as $penjualan) {
+                foreach ($penjualan->rincianPenjualans as $rincian) {
+                    if (in_array($rincian->barang->id_subkategori, $subkategoriIds->toArray())) {
+                        $jumlahTerjual += 1; 
+                    }
+                }
+            }
+
+
+            $jumlahGagal = 0;
+            foreach ($penjualanGagal as $penjualan) {
+                foreach ($penjualan->rincianPenjualans as $rincian) {
+                    if (in_array($rincian->barang->id_subkategori, $subkategoriIds->toArray())) {
+                        $jumlahGagal += 1; 
+                    }
+                }
+            }
+
+            $totalTerjual += $jumlahTerjual;
+            $totalGagal += $jumlahGagal;
+
+            $hasilLaporan[] = [
+                'kategori' => $kategori->nama_kategori,
+                'jumlah_item_terjual' => $jumlahTerjual,
+                'jumlah_item_gagal' => $jumlahGagal,
+            ];
+        }
+
+        $hasilLaporan[] = [
+            'kategori' => 'Total',
+            'jumlah_item_terjual' => $totalTerjual,
+            'jumlah_item_gagal' => $totalGagal,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'tahun' => $tahun,
+            'tanggal_hari_ini' => $tanggalHariIni,
+            'data' => $hasilLaporan
+        ]);
+    }
+
 }

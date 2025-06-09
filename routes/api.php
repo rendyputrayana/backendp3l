@@ -209,4 +209,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/laporan/donasi/{bulan}', [Laporan::class, 'LaporanDonasi']);
     Route::get('/laporan/penitip/{id_penitip}', [Laporan::class, 'LaporanPenitip']);
 
+    Route::get('/laporan/perkategori/{tahun}', [Laporan::class, 'laporanPenjualanPerKategori']);
+
 });
