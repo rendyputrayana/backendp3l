@@ -56,6 +56,7 @@ Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 // ======================= Badges =======================
 Route::get('/badges/top-seller', [BadgeController::class, 'TopSeller']);
 
+Route::post('/badges/top-seller/command', [BadgeController::class, 'TopSellerCommand']);
 
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {

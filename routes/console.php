@@ -31,4 +31,4 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::call(function () {
     Artisan::call('penjualan:top-seller');
-})->everyFifteenSeconds();
+})->everyMinute();

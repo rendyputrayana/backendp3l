@@ -6,6 +6,7 @@ use App\Models\Badge;
 use Illuminate\Http\Request;
 use App\Models\Penitip;
 use App\Models\AkumulasiRating;
+use Illuminate\Support\Facades\Artisan;
 
 class BadgeController extends Controller
 {
@@ -40,6 +41,20 @@ class BadgeController extends Controller
             ], 404);
         }
     }
+
+    public function TopSellerCommand(){
+        Artisan::call('penjualan:top-seller');
+
+        $output = Artisan::output();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Top Seller Command executed successfully',
+            'data' => $output
+        ]);
+    }
+
+
 
 
     /**
