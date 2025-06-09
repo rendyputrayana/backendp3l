@@ -307,9 +307,9 @@ class PenjualanController extends Controller
         Log::info('Jadwal Pengiriman: ' . $penjualan->tanggal_lunas);
 
         
-        $jamLunas = Carbon::parse($penjualan->tanggal_lunas)->format('H:i:s');
+        $jamPengiriman = Carbon::parse($request->jadwal_pengiriman)->format('H:i:s');
 
-        if ($jamLunas > '16:00:00') {
+        if ($jamPengiriman > '16:00:00') {
             return response()->json([
                 'message' => 'Jadwal pengiriman tidak boleh pada hari ini.',
             ], 400);
