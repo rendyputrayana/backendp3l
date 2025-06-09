@@ -40,3 +40,4 @@ class cekBarang7Hari extends Command
         }
     }
 }
+

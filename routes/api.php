@@ -8,7 +8,7 @@ use App\Http\Controllers\{
     BarangController, DetailKeranjangController, KategoriController,
     SubkategoriController, PenjualanController, DiskusiProdukController, DonasiController,
     MerchandiseController, RincianPenjualanController,  JabatanController, PenitipanController,
-    Laporan
+    Laporan, BadgeController
 };
 
 // ======================= AUTH =======================
@@ -53,7 +53,10 @@ Route::get('/diskusiProduk', [DiskusiProdukController::class, 'index']);
 Route::get('/diskusiProduk/{barangs}', [DiskusiProdukController::class, 'show']);
 Route::get('/tampilRating/{barang}', [BarangController::class, 'tampilRating']);
 
+// ======================= Badges =======================
+Route::get('/badges/top-seller', [BadgeController::class, 'TopSeller']);
 
+Route::post('/badges/top-seller/command', [BadgeController::class, 'TopSellerCommand']);
 
 // ======================= AUTHENTICATED ROUTES =======================
 Route::middleware('auth:sanctum')->group(function () {
@@ -123,6 +126,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/penukaran', [PenukaranRewardController::class, 'index']);
     Route::get('/penukaran/{penukaranReward}', [PenukaranRewardController::class, 'show']);
     Route::post('/penukaran', [PenukaranRewardController::class, 'store']);
+    Route::put('/penukaran/{penukaranReward}', [PenukaranRewardController::class, 'updateTanggalPengambilan']);
 
     // --------- REQUEST DONASI ---------
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
@@ -198,6 +202,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------- LAPORAN ---------
     Route::get('/laporan/bulanan', [Laporan::class, 'LaporanBulanan']);
     Route::get('/laporan/requestDonasi', [Laporan::class, 'LaporanRequestDonasi']);
+
+    Route::get('/laporan/stokGudang', [Laporan::class, 'laporanStokGudang']);
+    Route::get('/laporan/komisiBulanan', [Laporan::class, 'laporanKomisiBulanan']);
+
     Route::get('/laporan/donasi/{bulan}', [Laporan::class, 'LaporanDonasi']);
     Route::get('/laporan/penitip/{id_penitip}', [Laporan::class, 'LaporanPenitip']);
+
 });
