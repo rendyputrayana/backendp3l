@@ -954,6 +954,63 @@ class PenjualanController extends Controller
             'data' => $penjualan
         ]);
     }
+
+    public function getHistoryHunterByIdHunterFilter($id_hunter, $tahun = null, $bulan = null)
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang.penitipan.hunter',
+        ])
+        ->whereHas('rincianPenjualans.barang.penitipan.hunter', function($query) use ($id_hunter) {
+            $query->where('id_hunter', $id_hunter);
+        })
+        ->when($tahun, function($query) use ($tahun) {
+            $query->whereYear('tanggal_transaksi', $tahun);
+        })
+        ->when($bulan, function($query) use ($bulan) {
+            $query->whereMonth('tanggal_transaksi', $bulan);
+        })
+        ->where('status_pengiriman', 'diterima')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data penjualan untuk hunter ini.',
+                'data' => [],
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Data penjualan hunter berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
+
+
+    public function getHistoryDikirimHunterByIdHunter($id_hunter)
+    {
+        $penjualan = Penjualan::with([
+            'rincianPenjualans.barang.penitipan.hunter',
+        ])
+        ->whereHas('rincianPenjualans.barang.penitipan.hunter', function($query) use ($id_hunter) {
+            $query->where('id_hunter', $id_hunter);
+        })
+        ->where('status_pengiriman', 'diKirim')
+        ->orderBy('tanggal_transaksi', 'desc')
+        ->get();
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data penjualan untuk hunter ini.',
+                'data' => [],
+                'status' => false
+            ], 200);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Data penjualan hunter berhasil diambil.',
+            'data' => $penjualan
+        ]);
+    }
     
      /**
      * Display the specified resource.

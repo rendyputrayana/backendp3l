@@ -184,7 +184,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/allPenjualan', [PenjualanController::class, 'getAllPenjualan']);
     Route::get('/allPenjualanBelumDiambil', [PenjualanController::class, 'getAllPenjualanBelumDiambil']);
     Route::get('/historyHunterByIdHunter/{id_hunter}', [PenjualanController::class, 'getHistoryHunterByIdHunter']);
-
+    Route::get('/historyHunterDikirimByIdHunter/{id_hunter}', [PenjualanController::class, 'getHistoryDikirimHunterByIdHunter']);    
 
     // --------- RINCIAN PENJUALAN ---------
     Route::get('/allPengirimanBarang', [RincianPenjualanController::class, 'getAllPengirimanBarang']);
@@ -209,4 +209,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/laporan/donasi/{bulan}', [Laporan::class, 'LaporanDonasi']);
     Route::get('/laporan/penitip/{id_penitip}', [Laporan::class, 'LaporanPenitip']);
 
+    Route::get('/laporan/perkategori/{tahun}', [Laporan::class, 'laporanPenjualanPerKategori']);
+    Route::get('/laporan/perkategorihunter/{tahun}', [Laporan::class, 'laporanPenjualanPerKategoriHunter']);
 });
