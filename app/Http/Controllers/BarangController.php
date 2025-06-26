@@ -650,22 +650,26 @@ class BarangController extends Controller
 
     public function getPenitipanSudahHabis()
     {
-        $targetTanggal = Carbon::today()->subDays(7);
+        $today = Carbon::today();
 
         $barangs = Barang::with('penitipan.penitip')
             ->where('status_barang', 'barang_untuk_donasi')
-            ->whereDate('masa_penitipan', '<', $targetTanggal)
+            ->whereDate('masa_penitipan', '<=', $today)
+            ->whereDate('masa_penitipan', '>=', $today->copy()->subDays(7)) 
             ->get();
+
         if ($barangs->isEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Tidak ada barang penitipan yang sudah habis masa penitipannya.'
+                'message' => 'Tidak ada barang penitipan yang sudah habis dan masih dalam batas waktu pengambilan.'
             ], 404);
         }
+
         return response()->json([
             'status' => true,
             'data' => $barangs,
-            'message' => 'Daftar barang penitipan yang sudah habis masa penitipannya.'
+            'message' => 'Daftar barang penitipan yang sudah habis masa penitipannya dan masih bisa diambil.'
         ]);
     }
+
 }
